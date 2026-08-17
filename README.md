@@ -161,7 +161,7 @@ CompileLight/
 ├── config/                      # 配置示例（control_plane.example.yaml）
 ├── data/
 │   └── artifacts/registry/      # 资产模板种子（3 个 domain × 5 Kind，JSON）
-├── docs/                        # 设计文档（AGENTS.md · PROJECT_STRUCTURE.md · DESIGN_MEMORY.md）
+├── assets/                      # 架构示意图（Control Plane / LangGraph / System2 / Registry / Evolve）
 ├── pyproject.toml               # Python 包 & 依赖声明
 ├── environment.yml              # Conda 环境定义
 ├── .env.example                 # 环境变量模板
@@ -308,14 +308,16 @@ mypy src/
 
 ---
 
-## 📚 文档索引
+## 📚 架构图
 
-| 文档 | 内容 |
+| 图片 | 说明 |
 |------|-----|
-| [docs/AGENTS.md](docs/AGENTS.md) | **必读** · 全局实现约束、验收口径、不变量、进度快照 |
-| [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) | 组件边界、目录设计、数据流、接口、实现顺序 |
-| [docs/DESIGN_MEMORY.md](docs/DESIGN_MEMORY.md) | 上位设计记忆与决策记录 |
-| [data/DATA_LAYOUT_AND_RETRIEVAL_FLOW.md](data/DATA_LAYOUT_AND_RETRIEVAL_FLOW.md) | 数据地图：资产 → 检索 → 编译 → 执行 → 验证链路 |
+| ![Dify](assets/Dify.png) | **Dify 控制平面**：Normalize → 检索 → SAD → 编译 → 路由 → 执行全流程 |
+| ![LangGraph](assets/LangGraph.png) | **LangGraph 执行平面**：固定 Meta-Executor 的 Step 调度循环 |
+| ![System2](assets/System2.png) | **有界 System 2**：冻结上下文 → 缺口分类 → 受控推理 → 输出验证 |
+| ![Register](assets/Register.png) | **Registry 三层架构**：Experience Evidence → Versioned Skill → Retrieval Projection |
+| ![Evolve](assets/Evolve_backbone.png) | **资产演进生命周期**：DRAFT → VALIDATING → SHADOW → CANARY → ACTIVE → RETIRED |
+| ![Backbone](assets/Backbone_dada_Transform.png) | **System Backend Driven Loop**：双循环驱动的资产沉淀与复用 |
 
 ---
 
