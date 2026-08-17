@@ -1,0 +1,141 @@
+{
+  "asset": {
+    "asset_id": "validator.financial_report.performance.analysis",
+    "body": {
+      "directly_executable": true,
+      "executor": "DECLARATIVE_RULESET",
+      "kind": "VALIDATOR",
+      "rules": [
+        {
+          "expected": null,
+          "failure_code": "ANALYSIS_KIND_MISSING",
+          "field": "payload.analysis_kind",
+          "operator": "EXISTS"
+        },
+        {
+          "expected": null,
+          "failure_code": "ANALYSIS_ITEMS_MISSING",
+          "field": "payload.analysis_items",
+          "operator": "EXISTS"
+        },
+        {
+          "expected": [
+            "LOW",
+            "MEDIUM",
+            "HIGH"
+          ],
+          "failure_code": "RISK_LEVEL_INVALID",
+          "field": "payload.risk_level",
+          "operator": "IN"
+        }
+      ],
+      "validates_schema": "PerformanceAnalysisResult"
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只返回验证结果和失败码"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "ANALYSIS_ITEMS_MISSING",
+        "RISK_LEVEL_INVALID"
+      ],
+      "goal": "独立验证经营表现分析输出是否完整且风险等级受控。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "payload": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "payload"
+        ],
+        "title": "PerformanceAnalysisResult",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "financial_report.validator.performance_analysis",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "failure_codes": {
+            "type": "array"
+          },
+          "valid": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "valid",
+          "failure_codes"
+        ],
+        "title": "ValidationResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "payload 来自经营表现 FSM 或测试 fixture"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "financial_report",
+    "kind": "VALIDATOR",
+    "owner": "financial_report_poc",
+    "recall_policy": "GRAPH_ONLY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "生成摘要文本",
+        "计算原始公式"
+      ],
+      "input_type_summary": "PerformanceAnalysisResult",
+      "keywords": [
+        "Validator",
+        "同比",
+        "分部",
+        "预算",
+        "风险"
+      ],
+      "name": "经营表现分析 Validator",
+      "output_type_summary": "ValidationResult",
+      "positive_triggers": [
+        "验证同比分析",
+        "验证预算偏差",
+        "验证分部排名"
+      ],
+      "summary": "验证同比、分部或预算分析结果是否含分析项、风险等级和复核路由。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_fsm_report_builder_v1"
+        ],
+        "scenario_id": "financial_report_02_income_yoy",
+        "step_ids": [
+          "step_04"
+        ],
+        "trace_id": "trace_syn_financial_report_02_income_yoy"
+      },
+      {
+        "candidate_ids": [
+          "candidate_validator_thresh_02"
+        ],
+        "scenario_id": "financial_report_07_budget_variance",
+        "step_ids": [
+          "step_03"
+        ],
+        "trace_id": "trace_syn_financial_report_07_budget_variance"
+      }
+    ],
+    "test_suite_ref": "suite.financial_report.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

@@ -1,0 +1,11 @@
+name: reduce-token-agent
+channels:
+  - defaults
+dependencies:
+  - python=3.12
+  - pip>=24
+  - setuptools>=75
+  - wheel
+  - pip:
+      - -e ".[dev]"
+

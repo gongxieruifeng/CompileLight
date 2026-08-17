@@ -1,0 +1,110 @@
+{
+  "asset": {
+    "asset_id": "tool.corporate_ops.expense.duplicate_receipt_check",
+    "body": {
+      "directly_executable": true,
+      "handler_ref": "python://reduce_token_agent.tools.corporate_ops:duplicate_receipt_check",
+      "invocation": "FUNCTION",
+      "kind": "PRIMITIVE_TOOL",
+      "operation_count": 1
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只产生重复分组结果，不修改报销单"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "RECEIPT_SCHEMA_INVALID",
+        "DUPLICATE_KEY_MISSING"
+      ],
+      "goal": "对已结构化票据集合执行单一、可重复的重复性检查。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "match_keys": {
+            "type": "array"
+          },
+          "receipts": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "receipts",
+          "match_keys"
+        ],
+        "title": "ReceiptCollection",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "corporate_ops.expense.duplicate_receipt_check",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "duplicate_groups": {
+            "type": "array"
+          },
+          "has_duplicates": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "duplicate_groups",
+          "has_duplicates"
+        ],
+        "title": "DuplicateReceiptAssessment",
+        "type": "object"
+      },
+      "preconditions": [
+        "票据已完成结构化且每条记录具有稳定标识"
+      ],
+      "required_scopes": [],
+      "side_effect": "READ_ONLY",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "corporate_operations",
+    "kind": "PRIMITIVE_TOOL",
+    "owner": "corporate_operations_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "LOW",
+    "route_header": {
+      "anti_triggers": [
+        "提取发票图片字段",
+        "批准或支付报销款"
+      ],
+      "input_type_summary": "ReceiptCollection",
+      "keywords": [
+        "报销",
+        "票据",
+        "重复",
+        "凭证号"
+      ],
+      "name": "重复票据检测",
+      "output_type_summary": "DuplicateReceiptAssessment",
+      "positive_triggers": [
+        "检查报销票据是否重复",
+        "识别重复凭证号"
+      ],
+      "summary": "对结构化报销票据执行凭证号及时间地点组合键的确定性重复检查。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_dup_checker_v1"
+        ],
+        "scenario_id": "corporate_operations_01_expense_reimbursement",
+        "step_ids": [
+          "step_02"
+        ],
+        "trace_id": "trace_syn_corporate_operations_01_expense_reimbursement"
+      }
+    ],
+    "test_suite_ref": "suite.corporate_operations.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

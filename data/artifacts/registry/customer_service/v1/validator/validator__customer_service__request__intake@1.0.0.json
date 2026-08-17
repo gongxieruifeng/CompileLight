@@ -1,0 +1,138 @@
+{
+  "asset": {
+    "asset_id": "validator.customer_service.request.intake",
+    "body": {
+      "directly_executable": true,
+      "executor": "DECLARATIVE_RULESET",
+      "kind": "VALIDATOR",
+      "rules": [
+        {
+          "expected": null,
+          "failure_code": "DRAFT_ID_MISSING",
+          "field": "payload.draft_id",
+          "operator": "EXISTS"
+        },
+        {
+          "expected": true,
+          "failure_code": "HUMAN_REVIEW_REQUIRED",
+          "field": "payload.human_review_required",
+          "operator": "EQ"
+        },
+        {
+          "expected": false,
+          "failure_code": "UNAUTHORIZED_WRITE",
+          "field": "payload.side_effects_allowed",
+          "operator": "EQ"
+        }
+      ],
+      "validates_schema": "RequestIntakeResult"
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只返回验证结果，不提交业务申请"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "HUMAN_REVIEW_REQUIRED",
+        "UNAUTHORIZED_WRITE"
+      ],
+      "goal": "独立验证高敏客服请求是否只生成草稿和人工处理边界。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "payload": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "payload"
+        ],
+        "title": "RequestIntakeResult",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "customer_service.validator.request_intake",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "failure_codes": {
+            "type": "array"
+          },
+          "valid": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "valid",
+          "failure_codes"
+        ],
+        "title": "ValidationResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "payload 来自高敏请求受理 FSM 或测试 fixture"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "customer_service",
+    "kind": "VALIDATOR",
+    "owner": "customer_service_poc",
+    "recall_policy": "GRAPH_ONLY",
+    "release_status": "DRAFT",
+    "risk_level": "HIGH",
+    "route_header": {
+      "anti_triggers": [
+        "直接提交申请",
+        "直接更新地址"
+      ],
+      "input_type_summary": "RequestIntakeResult",
+      "keywords": [
+        "Validator",
+        "提前还款",
+        "资料更正",
+        "人工复核"
+      ],
+      "name": "高敏请求受理 Validator",
+      "output_type_summary": "ValidationResult",
+      "positive_triggers": [
+        "验证提前还款申请草稿",
+        "验证地址更正工单",
+        "检查缺失字段"
+      ],
+      "summary": "验证提前还款和资料更正请求是否保留人工复核、缺失字段清晰且无真实写入。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_02_approval_policy_validator"
+        ],
+        "scenario_id": "customer_service_04_prepayment_request",
+        "step_ids": [
+          "step_02",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_customer_service_04_prepayment_request"
+      },
+      {
+        "candidate_ids": [
+          "candidate_02_risk_policy_gate"
+        ],
+        "scenario_id": "customer_service_07_profile_correction",
+        "step_ids": [
+          "step_02",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_customer_service_07_profile_correction"
+      }
+    ],
+    "test_suite_ref": "suite.customer_service.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

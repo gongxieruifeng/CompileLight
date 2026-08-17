@@ -1,0 +1,135 @@
+{
+  "asset": {
+    "asset_id": "adapter.corporate_ops.onboarding.role_profile",
+    "body": {
+      "deterministic": true,
+      "directly_executable": true,
+      "from_schema": "RawRoleDescription",
+      "kind": "ADAPTER",
+      "mappings": [
+        {
+          "source": "job_title",
+          "target": "role_code",
+          "transform": "NORMALIZE_ENUM"
+        },
+        {
+          "source": "department",
+          "target": "training_categories",
+          "transform": "NORMALIZE_ENUM"
+        },
+        {
+          "source": "work_mode",
+          "target": "work_mode",
+          "transform": "COPY"
+        }
+      ],
+      "side_effect": "NONE",
+      "to_schema": "NormalizedRoleProfile"
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "仅转换字段，不做录用决策或外部写入"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "ROLE_MAPPING_NOT_FOUND",
+        "WORK_MODE_UNSUPPORTED"
+      ],
+      "goal": "在原始岗位描述与入职计划输入之间执行确定性字段转换。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "department": {
+            "type": "string"
+          },
+          "job_title": {
+            "type": "string"
+          },
+          "work_mode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_title",
+          "department",
+          "work_mode"
+        ],
+        "title": "RawRoleDescription",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "corporate_ops.onboarding.role_profile_adapter",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "role_code": {
+            "type": "string"
+          },
+          "training_categories": {
+            "type": "array"
+          },
+          "work_mode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "role_code",
+          "training_categories",
+          "work_mode"
+        ],
+        "title": "NormalizedRoleProfile",
+        "type": "object"
+      },
+      "preconditions": [
+        "岗位映射表版本已固定"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "corporate_operations",
+    "kind": "ADAPTER",
+    "owner": "corporate_operations_poc",
+    "recall_policy": "GRAPH_ONLY",
+    "release_status": "DRAFT",
+    "risk_level": "LOW",
+    "route_header": {
+      "anti_triggers": [
+        "判断候选人是否录用",
+        "生成入职任务计划"
+      ],
+      "input_type_summary": "RawRoleDescription",
+      "keywords": [
+        "岗位",
+        "角色代码",
+        "字段映射",
+        "入职"
+      ],
+      "name": "入职岗位规范化 Adapter",
+      "output_type_summary": "NormalizedRoleProfile",
+      "positive_triggers": [
+        "岗位描述转换为入职规划输入"
+      ],
+      "summary": "把外部岗位描述确定性映射为内部岗位代码、培训类别和工作模式字段。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_adapt_role_norm"
+        ],
+        "scenario_id": "corporate_operations_03_employee_onboarding",
+        "step_ids": [
+          "step_01"
+        ],
+        "trace_id": "trace_syn_corporate_operations_03_employee_onboarding"
+      }
+    ],
+    "test_suite_ref": "suite.corporate_operations.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

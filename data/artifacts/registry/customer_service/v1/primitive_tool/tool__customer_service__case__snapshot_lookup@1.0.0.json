@@ -1,0 +1,144 @@
+{
+  "asset": {
+    "asset_id": "tool.customer_service.case.snapshot_lookup",
+    "body": {
+      "directly_executable": true,
+      "handler_ref": "python://reduce_token_agent.assets_runtime.customer_service:case_snapshot_lookup",
+      "invocation": "FUNCTION",
+      "kind": "PRIMITIVE_TOOL",
+      "operation_count": 1
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只读取本地合成事实，不访问真实外部系统"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "SNAPSHOT_NOT_FOUND",
+        "LOOKUP_KEY_EMPTY"
+      ],
+      "goal": "从本地合成目录读取客服任务所需的事实快照，供后续确定性执行使用。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "lookup_key": {
+            "type": "string"
+          },
+          "lookup_type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "lookup_key"
+        ],
+        "title": "CaseSnapshotLookup",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "customer_service.case.snapshot_lookup",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "facts": {
+            "type": "object"
+          },
+          "lookup_key": {
+            "type": "string"
+          },
+          "snapshot_type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "lookup_key",
+          "snapshot_type",
+          "facts"
+        ],
+        "title": "CaseSnapshot",
+        "type": "object"
+      },
+      "preconditions": [
+        "lookup_key 来自合成 Trace 或测试 fixture"
+      ],
+      "required_scopes": [],
+      "side_effect": "READ_ONLY",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "customer_service",
+    "kind": "PRIMITIVE_TOOL",
+    "owner": "customer_service_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "LOW",
+    "route_header": {
+      "anti_triggers": [
+        "访问真实客户系统",
+        "更新账单或征信记录"
+      ],
+      "input_type_summary": "CaseSnapshotLookup",
+      "keywords": [
+        "快照",
+        "账单",
+        "合同",
+        "证据",
+        "客户资料"
+      ],
+      "name": "合成客服事实快照查询",
+      "output_type_summary": "CaseSnapshot",
+      "positive_triggers": [
+        "查询账单快照",
+        "读取合同利率片段",
+        "读取证据包",
+        "读取客户资料"
+      ],
+      "summary": "按稳定键读取账单、合同、支付、客户资料或证据包的合成快照。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_01_bill_adapter"
+        ],
+        "scenario_id": "customer_service_01_repayment_inquiry",
+        "step_ids": [
+          "step_03"
+        ],
+        "trace_id": "trace_syn_customer_service_01_repayment_inquiry"
+      },
+      {
+        "candidate_ids": [
+          "candidate_rate_adapter_v1"
+        ],
+        "scenario_id": "customer_service_03_rate_explanation",
+        "step_ids": [
+          "step_02"
+        ],
+        "trace_id": "trace_syn_customer_service_03_rate_explanation"
+      },
+      {
+        "candidate_ids": [],
+        "scenario_id": "customer_service_07_profile_correction",
+        "step_ids": [
+          "step_02"
+        ],
+        "trace_id": "trace_syn_customer_service_07_profile_correction"
+      },
+      {
+        "candidate_ids": [
+          "candidate_evidence_validator_v2"
+        ],
+        "scenario_id": "customer_service_08_credit_dispute",
+        "step_ids": [
+          "step_02"
+        ],
+        "trace_id": "trace_syn_customer_service_08_credit_dispute"
+      }
+    ],
+    "test_suite_ref": "suite.customer_service.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

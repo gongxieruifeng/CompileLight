@@ -1,0 +1,171 @@
+{
+  "asset": {
+    "asset_id": "fsm.corporate_ops.leave.eligibility_route",
+    "body": {
+      "directly_executable": true,
+      "kind": "FSM_SHARD",
+      "start_state": "request_ready",
+      "states": [
+        {
+          "invariant": "假期类型和日期区间完整",
+          "state_id": "request_ready"
+        },
+        {
+          "invariant": "节假日和工作日事实已固定",
+          "state_id": "calendar_resolved"
+        },
+        {
+          "invariant": "预计余额不被隐式写回",
+          "state_id": "balance_checked"
+        },
+        {
+          "invariant": "资格结论和审批路径已经形成",
+          "state_id": "route_ready"
+        }
+      ],
+      "subgoal": "完成请假可扣天数、余额和审批路径的联合判断。",
+      "terminal_states": [
+        "route_ready"
+      ],
+      "transitions": [
+        {
+          "event": "RESOLVE_CALENDAR",
+          "from_state": "request_ready",
+          "guard": "日期区间有效",
+          "to_state": "calendar_resolved"
+        },
+        {
+          "event": "CHECK_BALANCE",
+          "from_state": "calendar_resolved",
+          "guard": "应扣天数已确定",
+          "to_state": "balance_checked"
+        },
+        {
+          "event": "BUILD_ROUTE",
+          "from_state": "balance_checked",
+          "guard": "资格结论可验证",
+          "to_state": "route_ready"
+        }
+      ]
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只产生资格和路由结论，不扣减余额"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "DATE_RANGE_INVALID",
+        "INSUFFICIENT_BALANCE"
+      ],
+      "goal": "形成请假资格检查结果与审批路由，不修改员工余额。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "available_balance": {
+            "type": "number"
+          },
+          "calendar_snapshot": {
+            "type": "object"
+          },
+          "end_date": {
+            "type": "string"
+          },
+          "leave_type": {
+            "type": "string"
+          },
+          "start_date": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "leave_type",
+          "start_date",
+          "end_date",
+          "available_balance",
+          "calendar_snapshot"
+        ],
+        "title": "LeaveEligibilityInput",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "corporate_ops.leave.eligibility_route",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "deductible_days": {
+            "type": "number"
+          },
+          "eligible": {
+            "type": "boolean"
+          },
+          "projected_balance": {
+            "type": "number"
+          },
+          "route": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "deductible_days",
+          "projected_balance",
+          "eligible",
+          "route"
+        ],
+        "title": "LeaveEligibilityRoute",
+        "type": "object"
+      },
+      "preconditions": [
+        "日期区间、余额和日历快照均已验证"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "corporate_operations",
+    "kind": "FSM_SHARD",
+    "owner": "corporate_operations_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "直接扣减员工余额",
+        "写入最终考勤记录"
+      ],
+      "input_type_summary": "LeaveRequestFacts + BusinessCalendarSnapshot",
+      "keywords": [
+        "请假",
+        "年假",
+        "余额",
+        "审批路由",
+        "节假日"
+      ],
+      "name": "请假资格与审批路由",
+      "output_type_summary": "LeaveEligibilityRoute",
+      "positive_triggers": [
+        "检查年假余额并确定审批路径",
+        "处理跨月含节假日请假"
+      ],
+      "summary": "结合日期、节假日和余额事实计算可扣天数，并形成通过、补充或人工审批路径。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [],
+        "scenario_id": "corporate_operations_04_leave_workflow",
+        "step_ids": [
+          "step_01",
+          "step_02",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_corporate_operations_04_leave_workflow"
+      }
+    ],
+    "test_suite_ref": "suite.corporate_operations.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

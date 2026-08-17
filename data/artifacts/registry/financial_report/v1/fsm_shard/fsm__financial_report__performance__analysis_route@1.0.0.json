@@ -1,0 +1,188 @@
+{
+  "asset": {
+    "asset_id": "fsm.financial_report.performance.analysis_route",
+    "body": {
+      "directly_executable": true,
+      "kind": "FSM_SHARD",
+      "start_state": "metrics_ready",
+      "states": [
+        {
+          "invariant": "指标包可用于公式或排序。",
+          "state_id": "metrics_ready"
+        },
+        {
+          "invariant": "同比、贡献或偏差计算完成。",
+          "state_id": "calculate"
+        },
+        {
+          "invariant": "重大项目已排序或标记。",
+          "state_id": "rank"
+        },
+        {
+          "invariant": "分析结果等待 Validator。",
+          "state_id": "validated"
+        }
+      ],
+      "subgoal": "完成同比、分部和预算类经营表现分析。",
+      "terminal_states": [
+        "validated"
+      ],
+      "transitions": [
+        {
+          "event": "METRICS_COMPLETE",
+          "from_state": "metrics_ready",
+          "guard": "分析所需字段存在",
+          "to_state": "calculate"
+        },
+        {
+          "event": "ANALYSIS_COMPUTED",
+          "from_state": "calculate",
+          "guard": "结果可排序或分级",
+          "to_state": "rank"
+        },
+        {
+          "event": "ANALYSIS_READY",
+          "from_state": "rank",
+          "guard": "风险等级来自固定枚举",
+          "to_state": "validated"
+        }
+      ]
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "输出分析项和风险等级，不写入报表"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "ANALYSIS_KIND_UNSUPPORTED",
+        "NO_ANALYSIS_ITEMS"
+      ],
+      "goal": "对常见经营表现类财务指标生成可验证分析结果。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "analysis_kind": {
+            "type": "string"
+          },
+          "metric_snapshot": {
+            "type": "object"
+          },
+          "thresholds": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "analysis_kind",
+          "metric_snapshot"
+        ],
+        "title": "PerformanceAnalysisRequest",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "financial_report.performance.analysis_route",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "analysis_items": {
+            "type": "array"
+          },
+          "analysis_kind": {
+            "type": "string"
+          },
+          "human_review_required": {
+            "type": "boolean"
+          },
+          "risk_level": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "analysis_kind",
+          "analysis_items",
+          "risk_level"
+        ],
+        "title": "PerformanceAnalysisResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "输入指标已加载或归一化，阈值来自固定本地政策"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "financial_report",
+    "kind": "FSM_SHARD",
+    "owner": "financial_report_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "现金流异常专项",
+        "应收账龄专项",
+        "自动调预算"
+      ],
+      "input_type_summary": "PerformanceAnalysisRequest",
+      "keywords": [
+        "同比",
+        "分部",
+        "预算",
+        "表现",
+        "重大性"
+      ],
+      "name": "经营表现分析路由",
+      "output_type_summary": "PerformanceAnalysisResult",
+      "positive_triggers": [
+        "利润同比分析",
+        "分部表现排名",
+        "预算偏差分级",
+        "重大波动筛选"
+      ],
+      "summary": "覆盖利润同比、分部贡献和预算偏差的财务表现分析状态图。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_fsm_report_builder_v1"
+        ],
+        "scenario_id": "financial_report_02_income_yoy",
+        "step_ids": [
+          "step_02",
+          "step_03",
+          "step_04"
+        ],
+        "trace_id": "trace_syn_financial_report_02_income_yoy"
+      },
+      {
+        "candidate_ids": [],
+        "scenario_id": "financial_report_06_segment_performance",
+        "step_ids": [
+          "step_02",
+          "step_03",
+          "step_04"
+        ],
+        "trace_id": "trace_syn_financial_report_06_segment_performance"
+      },
+      {
+        "candidate_ids": [
+          "candidate_validator_thresh_02"
+        ],
+        "scenario_id": "financial_report_07_budget_variance",
+        "step_ids": [
+          "step_01",
+          "step_02",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_financial_report_07_budget_variance"
+      }
+    ],
+    "test_suite_ref": "suite.financial_report.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

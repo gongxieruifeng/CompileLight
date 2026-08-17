@@ -1,0 +1,163 @@
+{
+  "asset": {
+    "asset_id": "fsm.corporate_ops.onboarding.task_plan",
+    "body": {
+      "directly_executable": true,
+      "kind": "FSM_SHARD",
+      "start_state": "role_ready",
+      "states": [
+        {
+          "invariant": "岗位代码与工作模式已经确定",
+          "state_id": "role_ready"
+        },
+        {
+          "invariant": "清单来源和政策版本可追溯",
+          "state_id": "checklist_selected"
+        },
+        {
+          "invariant": "任务依赖图已经确认无环",
+          "state_id": "dependencies_ordered"
+        },
+        {
+          "invariant": "高风险动作均保留人工 Gate",
+          "state_id": "plan_ready"
+        }
+      ],
+      "subgoal": "选择入职任务清单并形成无环依赖计划。",
+      "terminal_states": [
+        "plan_ready"
+      ],
+      "transitions": [
+        {
+          "event": "SELECT_CHECKLIST",
+          "from_state": "role_ready",
+          "guard": "角色和工作模式受支持",
+          "to_state": "checklist_selected"
+        },
+        {
+          "event": "ORDER_DEPENDENCIES",
+          "from_state": "checklist_selected",
+          "guard": "任务定义均具有稳定标识",
+          "to_state": "dependencies_ordered"
+        },
+        {
+          "event": "FINALIZE_PLAN",
+          "from_state": "dependencies_ordered",
+          "guard": "依赖图无环且人工 Gate 完整",
+          "to_state": "plan_ready"
+        }
+      ]
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只生成任务计划，不创建账号、设备或培训记录"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "ROLE_PROFILE_INVALID",
+        "TASK_DEPENDENCY_CYCLE"
+      ],
+      "goal": "生成依赖有序且可验证的入职任务计划，不执行外部资源创建。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "policy_version": {
+            "type": "string"
+          },
+          "role_profile": {
+            "type": "object"
+          },
+          "work_mode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "role_profile",
+          "work_mode",
+          "policy_version"
+        ],
+        "title": "OnboardingPlanningInput",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "corporate_ops.onboarding.task_plan",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "dependency_order": {
+            "type": "array"
+          },
+          "estimated_duration_hours": {
+            "type": "number"
+          },
+          "human_gates": {
+            "type": "array"
+          },
+          "tasks": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "tasks",
+          "dependency_order",
+          "human_gates"
+        ],
+        "title": "OnboardingTaskPlan",
+        "type": "object"
+      },
+      "preconditions": [
+        "岗位已规范化且入职政策版本已固定"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "corporate_operations",
+    "kind": "FSM_SHARD",
+    "owner": "corporate_operations_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "立即创建员工账号",
+        "直接采购或发放设备"
+      ],
+      "input_type_summary": "NormalizedRoleProfile + OnboardingContext",
+      "keywords": [
+        "入职",
+        "任务清单",
+        "岗位",
+        "依赖",
+        "远程"
+      ],
+      "name": "员工入职任务计划",
+      "output_type_summary": "OnboardingTaskPlan",
+      "positive_triggers": [
+        "生成远程员工入职任务计划",
+        "安排入职任务依赖"
+      ],
+      "summary": "根据规范化岗位和工作模式选择任务清单并排序依赖，仅生成计划而不创建账号或设备。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_fsm_onboard_flow"
+        ],
+        "scenario_id": "corporate_operations_03_employee_onboarding",
+        "step_ids": [
+          "step_02",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_corporate_operations_03_employee_onboarding"
+      }
+    ],
+    "test_suite_ref": "suite.corporate_operations.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

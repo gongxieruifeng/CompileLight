@@ -1,0 +1,116 @@
+{
+  "asset": {
+    "asset_id": "validator.corporate_ops.procurement.approval_route",
+    "body": {
+      "directly_executable": true,
+      "executor": "DECLARATIVE_RULESET",
+      "kind": "VALIDATOR",
+      "rules": [
+        {
+          "expected": null,
+          "failure_code": "APPROVAL_ROUTE_MISSING",
+          "field": "route_levels",
+          "operator": "EXISTS"
+        },
+        {
+          "expected": null,
+          "failure_code": "DEPENDENCY_RESULT_MISSING",
+          "field": "block_reasons",
+          "operator": "EXISTS"
+        }
+      ],
+      "validates_schema": "ProcurementApprovalRoute"
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只返回验证结果和类型化失败码"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "VALIDATOR_INPUT_INVALID",
+        "VALIDATION_RULE_FAILED"
+      ],
+      "goal": "独立验证 ProcurementApprovalRoute 是否达到可接受的完成状态。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "payload": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "payload"
+        ],
+        "title": "ProcurementApprovalRoute",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "corporate_ops.procurement.approval_route.validate",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "failure_codes": {
+            "type": "array"
+          },
+          "valid": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "valid",
+          "failure_codes"
+        ],
+        "title": "ProcurementApprovalRouteValidationResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "待验证输出已经通过基础 JSON Schema 校验"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "corporate_operations",
+    "kind": "VALIDATOR",
+    "owner": "corporate_operations_poc",
+    "recall_policy": "GRAPH_ONLY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "生成业务数据",
+        "代替人工审批"
+      ],
+      "input_type_summary": "ProcurementApprovalRoute",
+      "keywords": [
+        "采购",
+        "审批路径",
+        "验证"
+      ],
+      "name": "采购审批路由 Validator",
+      "output_type_summary": "ValidationResult<ProcurementApprovalRoute>",
+      "positive_triggers": [
+        "验证 ProcurementApprovalRoute 完成状态"
+      ],
+      "summary": "证明采购路由包含金额阈值结果、供应商依赖结论和必要人工 Gate。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [],
+        "scenario_id": "corporate_operations_02_procurement_approval",
+        "step_ids": [
+          "step_02",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_corporate_operations_02_procurement_approval"
+      }
+    ],
+    "test_suite_ref": "suite.corporate_operations.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

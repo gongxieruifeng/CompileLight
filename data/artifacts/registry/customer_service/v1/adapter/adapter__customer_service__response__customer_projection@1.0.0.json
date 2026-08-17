@@ -1,0 +1,151 @@
+{
+  "asset": {
+    "asset_id": "adapter.customer_service.response.customer_projection",
+    "body": {
+      "deterministic": true,
+      "directly_executable": true,
+      "from_schema": "CustomerSupportInternalFacts",
+      "kind": "ADAPTER",
+      "mappings": [
+        {
+          "source": "facts.next_due_amount",
+          "target": "response_draft.amount_due",
+          "transform": "COPY"
+        },
+        {
+          "source": "facts.due_date",
+          "target": "response_draft.due_date",
+          "transform": "COPY"
+        },
+        {
+          "source": "facts.base_rate_type",
+          "target": "response_draft.base_rate_type",
+          "transform": "COPY"
+        },
+        {
+          "source": "facts.repricing_rule",
+          "target": "response_draft.repricing_rule",
+          "transform": "COPY"
+        }
+      ],
+      "side_effect": "NONE",
+      "to_schema": "CustomerFacingReplyFacts"
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只做字段投影和模板填充，不生成新业务结论"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "PROJECTION_KIND_UNSUPPORTED",
+        "REQUIRED_FACT_MISSING"
+      ],
+      "goal": "在内部客服事实和客户回复 Contract 之间做确定性字段映射。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "facts": {
+            "type": "object"
+          },
+          "projection_kind": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "projection_kind",
+          "facts"
+        ],
+        "title": "CustomerSupportInternalFacts",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "customer_service.response.customer_projection",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "disclosure_items": {
+            "type": "array"
+          },
+          "response_draft": {
+            "type": "string"
+          },
+          "response_kind": {
+            "type": "string"
+          },
+          "sensitive_fields_removed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "response_kind",
+          "response_draft",
+          "disclosure_items"
+        ],
+        "title": "CustomerFacingReplyFacts",
+        "type": "object"
+      },
+      "preconditions": [
+        "输入事实已来自受控快照或受控抽取结果"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "customer_service",
+    "kind": "ADAPTER",
+    "owner": "customer_service_poc",
+    "recall_policy": "GRAPH_ONLY",
+    "release_status": "DRAFT",
+    "risk_level": "LOW",
+    "route_header": {
+      "anti_triggers": [
+        "生成自由发挥文本",
+        "决定是否审批"
+      ],
+      "input_type_summary": "CustomerSupportInternalFacts",
+      "keywords": [
+        "Adapter",
+        "回复字段",
+        "账单",
+        "利率",
+        "投影"
+      ],
+      "name": "客服回复事实投影 Adapter",
+      "output_type_summary": "CustomerFacingReplyFacts",
+      "positive_triggers": [
+        "转换账单快照为回复字段",
+        "转换利率条款为披露字段"
+      ],
+      "summary": "把内部账单或利率事实确定性投影为可验证的客户展示字段。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_01_bill_adapter"
+        ],
+        "scenario_id": "customer_service_01_repayment_inquiry",
+        "step_ids": [
+          "step_03"
+        ],
+        "trace_id": "trace_syn_customer_service_01_repayment_inquiry"
+      },
+      {
+        "candidate_ids": [
+          "candidate_rate_adapter_v1"
+        ],
+        "scenario_id": "customer_service_03_rate_explanation",
+        "step_ids": [
+          "step_02"
+        ],
+        "trace_id": "trace_syn_customer_service_03_rate_explanation"
+      }
+    ],
+    "test_suite_ref": "suite.customer_service.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

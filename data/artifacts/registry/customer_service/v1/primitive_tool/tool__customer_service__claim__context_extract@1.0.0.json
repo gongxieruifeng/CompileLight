@@ -1,0 +1,147 @@
+{
+  "asset": {
+    "asset_id": "tool.customer_service.claim.context_extract",
+    "body": {
+      "directly_executable": true,
+      "handler_ref": "python://reduce_token_agent.assets_runtime.customer_service:claim_context_extract",
+      "invocation": "FUNCTION",
+      "kind": "PRIMITIVE_TOOL",
+      "operation_count": 1
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "返回结构化事实，不修改源对话或工单"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "EXTRACT_KIND_UNSUPPORTED",
+        "REQUIRED_FACT_MISSING"
+      ],
+      "goal": "把可复用的客服事实抽取沉淀为受控单函数，避免保留独立 EXTRACTOR kind。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "extract_kind": {
+            "type": "string"
+          },
+          "source_text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_text",
+          "extract_kind"
+        ],
+        "title": "ClaimExtractionInput",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "customer_service.claim.context_extract",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence_score": {
+            "type": "number"
+          },
+          "extract_kind": {
+            "type": "string"
+          },
+          "facts": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "extract_kind",
+          "facts",
+          "confidence_score"
+        ],
+        "title": "CustomerServiceFacts",
+        "type": "object"
+      },
+      "preconditions": [
+        "source_text 已脱敏或来自合成数据"
+      ],
+      "required_scopes": [],
+      "side_effect": "READ_ONLY",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "customer_service",
+    "kind": "PRIMITIVE_TOOL",
+    "owner": "customer_service_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "作为 EXTRACTOR kind 入库",
+        "生成最终处置意见"
+      ],
+      "input_type_summary": "ClaimExtractionInput",
+      "keywords": [
+        "主张",
+        "错误码",
+        "地址",
+        "异议",
+        "字段抽取"
+      ],
+      "name": "客服主张事实抽取",
+      "output_type_summary": "CustomerServiceFacts",
+      "positive_triggers": [
+        "抽取客户主张",
+        "提取支付错误码",
+        "提取地址变更字段",
+        "提取征信异议对象"
+      ],
+      "summary": "从合成客服文本中抽取支付主张、错误码、地址变更、欺诈或征信异议事实。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_01_claim_parser"
+        ],
+        "scenario_id": "customer_service_02_overdue_complaint",
+        "step_ids": [
+          "step_01"
+        ],
+        "trace_id": "trace_syn_customer_service_02_overdue_complaint"
+      },
+      {
+        "candidate_ids": [
+          "candidate_error_extractor_v1"
+        ],
+        "scenario_id": "customer_service_06_payment_failure",
+        "step_ids": [
+          "step_01"
+        ],
+        "trace_id": "trace_syn_customer_service_06_payment_failure"
+      },
+      {
+        "candidate_ids": [
+          "candidate_01_address_extractor"
+        ],
+        "scenario_id": "customer_service_07_profile_correction",
+        "step_ids": [
+          "step_01"
+        ],
+        "trace_id": "trace_syn_customer_service_07_profile_correction"
+      },
+      {
+        "candidate_ids": [
+          "candidate_dispute_parser_v1"
+        ],
+        "scenario_id": "customer_service_08_credit_dispute",
+        "step_ids": [
+          "step_01"
+        ],
+        "trace_id": "trace_syn_customer_service_08_credit_dispute"
+      }
+    ],
+    "test_suite_ref": "suite.customer_service.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

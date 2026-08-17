@@ -1,0 +1,120 @@
+{
+  "asset": {
+    "asset_id": "validator.corporate_ops.expense.pre_audit",
+    "body": {
+      "directly_executable": true,
+      "executor": "DECLARATIVE_RULESET",
+      "kind": "VALIDATOR",
+      "rules": [
+        {
+          "expected": null,
+          "failure_code": "DUPLICATE_RESULT_MISSING",
+          "field": "duplicate_groups",
+          "operator": "EXISTS"
+        },
+        {
+          "expected": [
+            "NORMAL",
+            "HUMAN_REVIEW",
+            "REJECT"
+          ],
+          "failure_code": "REVIEW_ROUTE_INVALID",
+          "field": "route",
+          "operator": "IN"
+        }
+      ],
+      "validates_schema": "ExpensePreAuditDecision"
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只返回验证结果和类型化失败码"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "VALIDATOR_INPUT_INVALID",
+        "VALIDATION_RULE_FAILED"
+      ],
+      "goal": "独立验证 ExpensePreAuditDecision 是否达到可接受的完成状态。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "payload": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "payload"
+        ],
+        "title": "ExpensePreAuditDecision",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "corporate_ops.expense.pre_audit.validate",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "failure_codes": {
+            "type": "array"
+          },
+          "valid": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "valid",
+          "failure_codes"
+        ],
+        "title": "ExpensePreAuditDecisionValidationResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "待验证输出已经通过基础 JSON Schema 校验"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "corporate_operations",
+    "kind": "VALIDATOR",
+    "owner": "corporate_operations_poc",
+    "recall_policy": "GRAPH_ONLY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "生成业务数据",
+        "代替人工审批"
+      ],
+      "input_type_summary": "ExpensePreAuditDecision",
+      "keywords": [
+        "报销",
+        "预审",
+        "验证"
+      ],
+      "name": "费用预审结果 Validator",
+      "output_type_summary": "ValidationResult<ExpensePreAuditDecision>",
+      "positive_triggers": [
+        "验证 ExpensePreAuditDecision 完成状态"
+      ],
+      "summary": "证明重复票据结果、政策违规项和处理路由均已形成。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [],
+        "scenario_id": "corporate_operations_01_expense_reimbursement",
+        "step_ids": [
+          "step_03",
+          "step_04"
+        ],
+        "trace_id": "trace_syn_corporate_operations_01_expense_reimbursement"
+      }
+    ],
+    "test_suite_ref": "suite.corporate_operations.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

@@ -1,0 +1,161 @@
+{
+  "asset": {
+    "asset_id": "fsm.financial_report.cashflow.anomaly_route",
+    "body": {
+      "directly_executable": true,
+      "kind": "FSM_SHARD",
+      "start_state": "cashflow_ready",
+      "states": [
+        {
+          "invariant": "现金流事实已分类。",
+          "state_id": "cashflow_ready"
+        },
+        {
+          "invariant": "经营现金流和净利润可比较。",
+          "state_id": "compare"
+        },
+        {
+          "invariant": "异常分数位于 0 到 100。",
+          "state_id": "score"
+        },
+        {
+          "invariant": "风险输出等待 Validator。",
+          "state_id": "validated"
+        }
+      ],
+      "subgoal": "完成经营现金流与净利润偏离的异常识别。",
+      "terminal_states": [
+        "validated"
+      ],
+      "transitions": [
+        {
+          "event": "CASHFLOW_COMPLETE",
+          "from_state": "cashflow_ready",
+          "guard": "OCF 和净利润存在",
+          "to_state": "compare"
+        },
+        {
+          "event": "DIVERGENCE_COMPUTED",
+          "from_state": "compare",
+          "guard": "偏离比例可计算",
+          "to_state": "score"
+        },
+        {
+          "event": "SCORE_READY",
+          "from_state": "score",
+          "guard": "高风险进入人工复核",
+          "to_state": "validated"
+        }
+      ]
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只生成异常评分和证据，不修改分类"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "CASHFLOW_INPUT_INVALID",
+        "SCORE_OUT_OF_RANGE"
+      ],
+      "goal": "完成现金流偏离风险的确定性评分和人工复核路由。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "cashflow_snapshot": {
+            "type": "object"
+          },
+          "thresholds": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "cashflow_snapshot"
+        ],
+        "title": "CashflowAnomalyRequest",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "financial_report.cashflow.anomaly_route",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "anomaly_flags": {
+            "type": "array"
+          },
+          "anomaly_score": {
+            "type": "number"
+          },
+          "human_review_required": {
+            "type": "boolean"
+          },
+          "risk_level": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "anomaly_score",
+          "risk_level",
+          "anomaly_flags"
+        ],
+        "title": "CashflowAnomalyResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "现金流和净利润指标来自合成快照"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "financial_report",
+    "kind": "FSM_SHARD",
+    "owner": "financial_report_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "HIGH",
+    "route_header": {
+      "anti_triggers": [
+        "生成筹资建议",
+        "修改现金流分类"
+      ],
+      "input_type_summary": "CashflowAnomalyRequest",
+      "keywords": [
+        "现金流",
+        "异常",
+        "净利润",
+        "评分",
+        "风险"
+      ],
+      "name": "现金流异常识别路由",
+      "output_type_summary": "CashflowAnomalyResult",
+      "positive_triggers": [
+        "现金流异常",
+        "经营现金流偏离净利润",
+        "异常评分"
+      ],
+      "summary": "比较经营现金流、净利润和趋势阈值，输出异常评分与风险标签。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_01_cashflow_tool",
+          "candidate_02_anomaly_fsm"
+        ],
+        "scenario_id": "financial_report_03_cashflow_anomaly",
+        "step_ids": [
+          "step_01",
+          "step_02",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_financial_report_03_cashflow_anomaly"
+      }
+    ],
+    "test_suite_ref": "suite.financial_report.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

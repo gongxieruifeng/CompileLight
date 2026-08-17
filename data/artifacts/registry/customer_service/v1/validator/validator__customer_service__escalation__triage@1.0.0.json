@@ -1,0 +1,140 @@
+{
+  "asset": {
+    "asset_id": "validator.customer_service.escalation.triage",
+    "body": {
+      "directly_executable": true,
+      "executor": "DECLARATIVE_RULESET",
+      "kind": "VALIDATOR",
+      "rules": [
+        {
+          "expected": true,
+          "failure_code": "HUMAN_HANDOFF_REQUIRED",
+          "field": "payload.human_review_required",
+          "operator": "EQ"
+        },
+        {
+          "expected": true,
+          "failure_code": "MASKING_REQUIRED",
+          "field": "payload.sensitive_fields_removed",
+          "operator": "EQ"
+        },
+        {
+          "expected": 24,
+          "failure_code": "DEADLINE_INVALID",
+          "field": "payload.deadline_hours",
+          "operator": "LTE"
+        }
+      ],
+      "validates_schema": "EscalationTriageResult"
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只返回验证结果，不触发真实外部通知"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "MASKING_REQUIRED",
+        "DEADLINE_INVALID"
+      ],
+      "goal": "独立验证高风险客服升级结果是否满足安全和合规边界。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "payload": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "payload"
+        ],
+        "title": "EscalationTriageResult",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "customer_service.validator.escalation_triage",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "failure_codes": {
+            "type": "array"
+          },
+          "valid": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "valid",
+          "failure_codes"
+        ],
+        "title": "ValidationResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "payload 来自升级路由 FSM 或测试 fixture"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "customer_service",
+    "kind": "VALIDATOR",
+    "owner": "customer_service_poc",
+    "recall_policy": "GRAPH_ONLY",
+    "release_status": "DRAFT",
+    "risk_level": "HIGH",
+    "route_header": {
+      "anti_triggers": [
+        "冻结账户",
+        "修改征信数据库"
+      ],
+      "input_type_summary": "EscalationTriageResult",
+      "keywords": [
+        "Validator",
+        "欺诈",
+        "征信",
+        "脱敏",
+        "时限"
+      ],
+      "name": "欺诈征信升级 Validator",
+      "output_type_summary": "ValidationResult",
+      "positive_triggers": [
+        "验证欺诈升级",
+        "验证征信异议时限",
+        "检查脱敏"
+      ],
+      "summary": "验证欺诈和征信异议升级是否脱敏、人工移交且时限合规。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_02_fraud_fsm_state_machine"
+        ],
+        "scenario_id": "customer_service_05_fraud_report",
+        "step_ids": [
+          "step_03",
+          "step_04"
+        ],
+        "trace_id": "trace_syn_customer_service_05_fraud_report"
+      },
+      {
+        "candidate_ids": [
+          "candidate_evidence_validator_v2",
+          "candidate_case_fsm_v1"
+        ],
+        "scenario_id": "customer_service_08_credit_dispute",
+        "step_ids": [
+          "step_02",
+          "step_04"
+        ],
+        "trace_id": "trace_syn_customer_service_08_credit_dispute"
+      }
+    ],
+    "test_suite_ref": "suite.customer_service.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

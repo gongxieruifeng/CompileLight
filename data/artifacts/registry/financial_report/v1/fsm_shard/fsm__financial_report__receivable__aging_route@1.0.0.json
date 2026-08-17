@@ -1,0 +1,162 @@
+{
+  "asset": {
+    "asset_id": "fsm.financial_report.receivable.aging_route",
+    "body": {
+      "directly_executable": true,
+      "kind": "FSM_SHARD",
+      "start_state": "normalize",
+      "states": [
+        {
+          "invariant": "客户和发票名称已归一。",
+          "state_id": "normalize"
+        },
+        {
+          "invariant": "回款和贷项通知已本地抵扣。",
+          "state_id": "apply_payments"
+        },
+        {
+          "invariant": "账龄桶总额可回溯。",
+          "state_id": "bucket"
+        },
+        {
+          "invariant": "风险输出等待 Validator。",
+          "state_id": "validated"
+        }
+      ],
+      "subgoal": "完成应收账款账龄桶与集中度风险计算。",
+      "terminal_states": [
+        "validated"
+      ],
+      "transitions": [
+        {
+          "event": "INVOICES_READY",
+          "from_state": "normalize",
+          "guard": "发票列表非空",
+          "to_state": "apply_payments"
+        },
+        {
+          "event": "BALANCE_UPDATED",
+          "from_state": "apply_payments",
+          "guard": "余额均非负",
+          "to_state": "bucket"
+        },
+        {
+          "event": "AGING_READY",
+          "from_state": "bucket",
+          "guard": "集中度阈值已应用",
+          "to_state": "validated"
+        }
+      ]
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只输出账龄和风险评估，不修改应收余额"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "AGING_INPUT_INVALID",
+        "BUCKET_TOTAL_MISMATCH"
+      ],
+      "goal": "完成应收账款账龄桶和客户集中度风险的确定性分析。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "receivable_snapshot": {
+            "type": "object"
+          },
+          "thresholds": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "receivable_snapshot"
+        ],
+        "title": "ReceivableAgingRequest",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "financial_report.receivable.aging_route",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "aging_buckets": {
+            "type": "object"
+          },
+          "concentration_ratio": {
+            "type": "number"
+          },
+          "risk_level": {
+            "type": "string"
+          },
+          "total_receivable": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "aging_buckets",
+          "total_receivable",
+          "risk_level"
+        ],
+        "title": "ReceivableAgingResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "发票和回款数据来自合成快照或已归一化视图"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "financial_report",
+    "kind": "FSM_SHARD",
+    "owner": "financial_report_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "HIGH",
+    "route_header": {
+      "anti_triggers": [
+        "核销真实应收",
+        "修改客户信用额度"
+      ],
+      "input_type_summary": "ReceivableAgingRequest",
+      "keywords": [
+        "应收",
+        "账龄",
+        "集中度",
+        "逾期",
+        "发票"
+      ],
+      "name": "应收账款账龄分析路由",
+      "output_type_summary": "ReceivableAgingResult",
+      "positive_triggers": [
+        "应收账龄分析",
+        "逾期桶计算",
+        "集中度风险",
+        "回款抵扣"
+      ],
+      "summary": "归一发票、应用回款、计算账龄桶并检查客户集中度风险。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_validator_concentration"
+        ],
+        "scenario_id": "financial_report_08_receivable_aging",
+        "step_ids": [
+          "step_01",
+          "step_02",
+          "step_03",
+          "step_04"
+        ],
+        "trace_id": "trace_syn_financial_report_08_receivable_aging"
+      }
+    ],
+    "test_suite_ref": "suite.financial_report.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

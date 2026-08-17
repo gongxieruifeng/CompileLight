@@ -1,0 +1,144 @@
+{
+  "asset": {
+    "asset_id": "tool.financial_report.calc.formula_batch",
+    "body": {
+      "directly_executable": true,
+      "handler_ref": "python://reduce_token_agent.assets_runtime.financial_report:formula_batch_calculate",
+      "invocation": "FUNCTION",
+      "kind": "PRIMITIVE_TOOL",
+      "operation_count": 1
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只返回计算结果和审计日志，不写入报表"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "CALCULATION_KIND_UNSUPPORTED",
+        "DIVISION_BY_ZERO"
+      ],
+      "goal": "把常见财务报表计算沉淀为可复用的受控公式批处理能力。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "calculation_kind": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "calculation_kind",
+          "metrics"
+        ],
+        "title": "FinancialFormulaInput",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "financial_report.calc.formula_batch",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "audit_log": {
+            "type": "array"
+          },
+          "calculation_kind": {
+            "type": "string"
+          },
+          "results": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "calculation_kind",
+          "results",
+          "audit_log"
+        ],
+        "title": "FinancialFormulaResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "输入指标来自受控快照或已归一化视图"
+      ],
+      "required_scopes": [],
+      "side_effect": "READ_ONLY",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "financial_report",
+    "kind": "PRIMITIVE_TOOL",
+    "owner": "financial_report_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "撰写管理层评论",
+        "审批报表调整",
+        "访问真实账套"
+      ],
+      "input_type_summary": "FinancialFormulaInput",
+      "keywords": [
+        "公式",
+        "同比",
+        "比率",
+        "预算偏差",
+        "勾稽"
+      ],
+      "name": "财务公式批量计算",
+      "output_type_summary": "FinancialFormulaResult",
+      "positive_triggers": [
+        "计算同比",
+        "计算财务比率",
+        "计算预算偏差",
+        "计算资产负债表差额"
+      ],
+      "summary": "执行勾稽差异、同比、财务比率和预算偏差等确定性公式计算。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_01_variance_detector"
+        ],
+        "scenario_id": "financial_report_01_balance_sheet_reconcile",
+        "step_ids": [
+          "step_03"
+        ],
+        "trace_id": "trace_syn_financial_report_01_balance_sheet_reconcile"
+      },
+      {
+        "candidate_ids": [],
+        "scenario_id": "financial_report_02_income_yoy",
+        "step_ids": [
+          "step_03"
+        ],
+        "trace_id": "trace_syn_financial_report_02_income_yoy"
+      },
+      {
+        "candidate_ids": [
+          "candidate_ratio_calculator_01"
+        ],
+        "scenario_id": "financial_report_04_financial_ratios",
+        "step_ids": [
+          "step_02"
+        ],
+        "trace_id": "trace_syn_financial_report_04_financial_ratios"
+      },
+      {
+        "candidate_ids": [],
+        "scenario_id": "financial_report_07_budget_variance",
+        "step_ids": [
+          "step_03"
+        ],
+        "trace_id": "trace_syn_financial_report_07_budget_variance"
+      }
+    ],
+    "test_suite_ref": "suite.financial_report.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

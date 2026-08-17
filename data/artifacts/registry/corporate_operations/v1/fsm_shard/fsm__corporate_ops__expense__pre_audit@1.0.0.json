@@ -1,0 +1,163 @@
+{
+  "asset": {
+    "asset_id": "fsm.corporate_ops.expense.pre_audit",
+    "body": {
+      "directly_executable": true,
+      "kind": "FSM_SHARD",
+      "start_state": "received",
+      "states": [
+        {
+          "invariant": "费用事实和政策版本已经固定",
+          "state_id": "received"
+        },
+        {
+          "invariant": "重复票据结果已经形成",
+          "state_id": "duplicates_checked"
+        },
+        {
+          "invariant": "住宿标准已经逐项校验",
+          "state_id": "policy_checked"
+        },
+        {
+          "invariant": "输出只包含路由建议而非付款动作",
+          "state_id": "routed"
+        }
+      ],
+      "subgoal": "完成费用报销预审并输出可验证的人工或正常处理路由。",
+      "terminal_states": [
+        "routed"
+      ],
+      "transitions": [
+        {
+          "event": "CHECK_DUPLICATES",
+          "from_state": "received",
+          "guard": "票据列表非空",
+          "to_state": "duplicates_checked"
+        },
+        {
+          "event": "CHECK_POLICY",
+          "from_state": "duplicates_checked",
+          "guard": "政策版本可用",
+          "to_state": "policy_checked"
+        },
+        {
+          "event": "ROUTE_REVIEW",
+          "from_state": "policy_checked",
+          "guard": "检查结果完整",
+          "to_state": "routed"
+        }
+      ]
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "形成预审结论和路由建议，不改变财务状态"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "DUPLICATE_CHECK_FAILED",
+        "POLICY_VERSION_MISSING"
+      ],
+      "goal": "形成可验证的费用预审结论与后续处理路由，不执行付款。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "lodging_items": {
+            "type": "array"
+          },
+          "policy_limits": {
+            "type": "object"
+          },
+          "receipts": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "receipts",
+          "lodging_items",
+          "policy_limits"
+        ],
+        "title": "ExpenseClaimFacts",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "corporate_ops.expense.pre_audit",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "duplicate_groups": {
+            "type": "array"
+          },
+          "human_review_required": {
+            "type": "boolean"
+          },
+          "policy_violations": {
+            "type": "array"
+          },
+          "route": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "duplicate_groups",
+          "policy_violations",
+          "route",
+          "human_review_required"
+        ],
+        "title": "ExpensePreAuditDecision",
+        "type": "object"
+      },
+      "preconditions": [
+        "费用事实和适用政策版本已固定"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "corporate_operations",
+    "kind": "FSM_SHARD",
+    "owner": "corporate_operations_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "执行报销付款",
+        "只提取发票文字"
+      ],
+      "input_type_summary": "ExpenseClaimFacts",
+      "keywords": [
+        "费用",
+        "报销",
+        "预审",
+        "住宿标准",
+        "重复票据"
+      ],
+      "name": "费用报销预审",
+      "output_type_summary": "ExpensePreAuditDecision",
+      "positive_triggers": [
+        "预审差旅报销",
+        "检查重复票据和住宿超标"
+      ],
+      "summary": "完成重复票据检查、住宿标准校验和人工复核路由这一可独立验证的预审子目标。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [],
+        "scenario_id": "corporate_operations_01_expense_reimbursement",
+        "step_ids": [
+          "step_02",
+          "step_03",
+          "step_04"
+        ],
+        "trace_id": "trace_syn_corporate_operations_01_expense_reimbursement"
+      }
+    ],
+    "test_suite_ref": "suite.corporate_operations.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

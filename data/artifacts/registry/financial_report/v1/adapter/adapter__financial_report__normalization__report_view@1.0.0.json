@@ -1,0 +1,181 @@
+{
+  "asset": {
+    "asset_id": "adapter.financial_report.normalization.report_view",
+    "body": {
+      "deterministic": true,
+      "directly_executable": true,
+      "from_schema": "RawFinancialView",
+      "kind": "ADAPTER",
+      "mappings": [
+        {
+          "source": "raw_payload.asset_total",
+          "target": "normalized_payload.total_assets",
+          "transform": "COPY"
+        },
+        {
+          "source": "raw_payload.liability_total",
+          "target": "normalized_payload.total_liabilities",
+          "transform": "COPY"
+        },
+        {
+          "source": "raw_payload.equity_total",
+          "target": "normalized_payload.total_equity",
+          "transform": "COPY"
+        },
+        {
+          "source": "raw_payload.currency",
+          "target": "normalized_payload.currency",
+          "transform": "NORMALIZE_ENUM"
+        },
+        {
+          "source": "raw_payload.account_code",
+          "target": "normalized_payload.metric_code",
+          "transform": "NORMALIZE_ENUM"
+        },
+        {
+          "source": "raw_payload.customer_alias",
+          "target": "normalized_payload.customer_id",
+          "transform": "NORMALIZE_ENUM"
+        }
+      ],
+      "side_effect": "NONE",
+      "to_schema": "NormalizedFinancialView"
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只做字段和币种转换，不产生业务结论"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "VIEW_KIND_UNSUPPORTED",
+        "MAPPING_RULE_MISSING"
+      ],
+      "goal": "在原始财务视图和标准分析 Contract 之间做确定性字段转换。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "raw_payload": {
+            "type": "object"
+          },
+          "view_kind": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "view_kind",
+          "raw_payload"
+        ],
+        "title": "RawFinancialView",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "financial_report.normalization.report_view",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "applied_rules": {
+            "type": "array"
+          },
+          "normalized_payload": {
+            "type": "object"
+          },
+          "view_kind": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "view_kind",
+          "normalized_payload",
+          "applied_rules"
+        ],
+        "title": "NormalizedFinancialView",
+        "type": "object"
+      },
+      "preconditions": [
+        "输入数据来自本地合成 Trace 或测试 fixture"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "financial_report",
+    "kind": "ADAPTER",
+    "owner": "financial_report_poc",
+    "recall_policy": "GRAPH_ONLY",
+    "release_status": "DRAFT",
+    "risk_level": "LOW",
+    "route_header": {
+      "anti_triggers": [
+        "执行公式计算",
+        "生成管理摘要",
+        "做异常判断"
+      ],
+      "input_type_summary": "RawFinancialView",
+      "keywords": [
+        "Adapter",
+        "科目",
+        "币种",
+        "发票",
+        "归一"
+      ],
+      "name": "财务报表视图归一 Adapter",
+      "output_type_summary": "NormalizedFinancialView",
+      "positive_triggers": [
+        "科目映射",
+        "币种归一",
+        "发票客户归一",
+        "报表字段标准化"
+      ],
+      "summary": "把科目、币种、分部和应收发票字段确定性转换为标准分析视图。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_03_discrepancy_reporter"
+        ],
+        "scenario_id": "financial_report_01_balance_sheet_reconcile",
+        "step_ids": [
+          "step_02"
+        ],
+        "trace_id": "trace_syn_financial_report_01_balance_sheet_reconcile"
+      },
+      {
+        "candidate_ids": [
+          "candidate_02_currency_adapter"
+        ],
+        "scenario_id": "financial_report_06_segment_performance",
+        "step_ids": [
+          "step_02"
+        ],
+        "trace_id": "trace_syn_financial_report_06_segment_performance"
+      },
+      {
+        "candidate_ids": [
+          "candidate_adapter_map_01"
+        ],
+        "scenario_id": "financial_report_07_budget_variance",
+        "step_ids": [
+          "step_01"
+        ],
+        "trace_id": "trace_syn_financial_report_07_budget_variance"
+      },
+      {
+        "candidate_ids": [
+          "candidate_adapter_norm_inv"
+        ],
+        "scenario_id": "financial_report_08_receivable_aging",
+        "step_ids": [
+          "step_01"
+        ],
+        "trace_id": "trace_syn_financial_report_08_receivable_aging"
+      }
+    ],
+    "test_suite_ref": "suite.financial_report.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

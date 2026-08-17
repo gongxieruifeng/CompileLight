@@ -1,0 +1,161 @@
+{
+  "asset": {
+    "asset_id": "fsm.financial_report.management.summary_route",
+    "body": {
+      "directly_executable": true,
+      "kind": "FSM_SHARD",
+      "start_state": "metrics_ready",
+      "states": [
+        {
+          "invariant": "指标包带有证据引用。",
+          "state_id": "metrics_ready"
+        },
+        {
+          "invariant": "重大性阈值来自固定策略。",
+          "state_id": "filter"
+        },
+        {
+          "invariant": "摘要仅引用已筛选指标。",
+          "state_id": "compose"
+        },
+        {
+          "invariant": "摘要等待 Validator。",
+          "state_id": "validated"
+        }
+      ],
+      "subgoal": "完成财务重大性筛选和管理层摘要草稿。",
+      "terminal_states": [
+        "validated"
+      ],
+      "transitions": [
+        {
+          "event": "METRICS_VALID",
+          "from_state": "metrics_ready",
+          "guard": "指标包含变动幅度",
+          "to_state": "filter"
+        },
+        {
+          "event": "MATERIAL_ITEMS_SELECTED",
+          "from_state": "filter",
+          "guard": "至少一个重大项目或明确无重大项目",
+          "to_state": "compose"
+        },
+        {
+          "event": "SUMMARY_DRAFTED",
+          "from_state": "compose",
+          "guard": "摘要带有引用",
+          "to_state": "validated"
+        }
+      ]
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只生成管理摘要草稿，不发布正式报告"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "MATERIALITY_EMPTY",
+        "CITATION_MISSING"
+      ],
+      "goal": "完成重大性筛选和证据化管理摘要草稿生成。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "materiality_threshold": {
+            "type": "number"
+          },
+          "metric_bundle": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "metric_bundle"
+        ],
+        "title": "ManagementSummaryRequest",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "financial_report.management.summary_route",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "citations": {
+            "type": "array"
+          },
+          "human_review_required": {
+            "type": "boolean"
+          },
+          "material_items": {
+            "type": "array"
+          },
+          "summary_text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "summary_text",
+          "material_items",
+          "citations"
+        ],
+        "title": "ManagementSummaryResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "输入指标已经过上游计算或验证"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "financial_report",
+    "kind": "FSM_SHARD",
+    "owner": "financial_report_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "发布正式报告",
+        "使用未经验证指标"
+      ],
+      "input_type_summary": "ManagementSummaryRequest",
+      "keywords": [
+        "管理层",
+        "摘要",
+        "重大性",
+        "引用",
+        "草稿"
+      ],
+      "name": "管理层财务摘要路由",
+      "output_type_summary": "ManagementSummaryResult",
+      "positive_triggers": [
+        "管理层摘要",
+        "重大性筛选",
+        "证据引用摘要"
+      ],
+      "summary": "筛选重大财务指标并生成带证据引用的管理层摘要草稿。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_fs_materiality_v1",
+          "candidate_tool_summary_gen_v1"
+        ],
+        "scenario_id": "financial_report_10_management_summary",
+        "step_ids": [
+          "step_01",
+          "step_02",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_financial_report_10_management_summary"
+      }
+    ],
+    "test_suite_ref": "suite.financial_report.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

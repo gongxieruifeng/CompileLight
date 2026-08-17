@@ -1,0 +1,118 @@
+{
+  "asset": {
+    "asset_id": "tool.corporate_ops.leave.business_calendar_lookup",
+    "body": {
+      "directly_executable": true,
+      "handler_ref": "python://reduce_token_agent.tools.corporate_ops:business_calendar_lookup",
+      "invocation": "FUNCTION",
+      "kind": "PRIMITIVE_TOOL",
+      "operation_count": 1
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "返回只读日历快照"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "DATE_RANGE_INVALID",
+        "CALENDAR_REGION_UNSUPPORTED"
+      ],
+      "goal": "查询指定日期区间内的工作日和法定节假日事实。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "end_date": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "start_date": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "start_date",
+          "end_date",
+          "region"
+        ],
+        "title": "CalendarRangeQuery",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "corporate_ops.leave.business_calendar_lookup",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "deductible_days": {
+            "type": "number"
+          },
+          "holidays": {
+            "type": "array"
+          },
+          "working_days": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "working_days",
+          "holidays",
+          "deductible_days"
+        ],
+        "title": "BusinessCalendarSnapshot",
+        "type": "object"
+      },
+      "preconditions": [
+        "开始日期不晚于结束日期"
+      ],
+      "required_scopes": [
+        "calendar:read"
+      ],
+      "side_effect": "READ_ONLY",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "corporate_operations",
+    "kind": "PRIMITIVE_TOOL",
+    "owner": "corporate_operations_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "LOW",
+    "route_header": {
+      "anti_triggers": [
+        "扣减员工假期余额",
+        "批准请假"
+      ],
+      "input_type_summary": "CalendarRangeQuery",
+      "keywords": [
+        "请假",
+        "工作日",
+        "节假日",
+        "跨月"
+      ],
+      "name": "工作日历查询",
+      "output_type_summary": "BusinessCalendarSnapshot",
+      "positive_triggers": [
+        "查询请假区间的工作日",
+        "跨月请假包含法定节假日"
+      ],
+      "summary": "按日期区间和地区查询合成节假日与应扣工作日，为请假核算提供只读事实。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [],
+        "scenario_id": "corporate_operations_04_leave_workflow",
+        "step_ids": [
+          "step_02"
+        ],
+        "trace_id": "trace_syn_corporate_operations_04_leave_workflow"
+      }
+    ],
+    "test_suite_ref": "suite.corporate_operations.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

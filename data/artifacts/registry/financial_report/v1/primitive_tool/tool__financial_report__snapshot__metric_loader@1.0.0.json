@@ -1,0 +1,150 @@
+{
+  "asset": {
+    "asset_id": "tool.financial_report.snapshot.metric_loader",
+    "body": {
+      "directly_executable": true,
+      "handler_ref": "python://reduce_token_agent.assets_runtime.financial_report:metric_snapshot_load",
+      "invocation": "FUNCTION",
+      "kind": "PRIMITIVE_TOOL",
+      "operation_count": 1
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只读取本地合成数据，不访问真实外部系统"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "SNAPSHOT_NOT_FOUND",
+        "SOURCE_KEY_EMPTY"
+      ],
+      "goal": "读取本地合成财务报表快照，输出后续资产可消费的稳定事实结构。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "source_key": {
+            "type": "string"
+          },
+          "statement_type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_key"
+        ],
+        "title": "FinancialSnapshotQuery",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "financial_report.snapshot.metric_loader",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "metrics": {
+            "type": "object"
+          },
+          "period": {
+            "type": "string"
+          },
+          "records": {
+            "type": "array"
+          },
+          "snapshot_type": {
+            "type": "string"
+          },
+          "source_key": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_key",
+          "snapshot_type",
+          "period"
+        ],
+        "title": "FinancialSnapshot",
+        "type": "object"
+      },
+      "preconditions": [
+        "source_key 来自合成 Trace 或测试 fixture"
+      ],
+      "required_scopes": [],
+      "side_effect": "READ_ONLY",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "financial_report",
+    "kind": "PRIMITIVE_TOOL",
+    "owner": "financial_report_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "LOW",
+    "route_header": {
+      "anti_triggers": [
+        "访问真实 ERP",
+        "修改报表数据",
+        "生成最终分析结论"
+      ],
+      "input_type_summary": "FinancialSnapshotQuery",
+      "keywords": [
+        "财务报表",
+        "快照",
+        "指标",
+        "分部",
+        "应收"
+      ],
+      "name": "财务快照指标加载",
+      "output_type_summary": "FinancialSnapshot",
+      "positive_triggers": [
+        "加载财务指标",
+        "读取利润表快照",
+        "读取应收账龄数据"
+      ],
+      "summary": "从本地合成财务快照读取报表指标、分部、预算或应收数据。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_extractor_financial_v1"
+        ],
+        "scenario_id": "financial_report_02_income_yoy",
+        "step_ids": [
+          "step_01"
+        ],
+        "trace_id": "trace_syn_financial_report_02_income_yoy"
+      },
+      {
+        "candidate_ids": [
+          "candidate_01_segment_extractor"
+        ],
+        "scenario_id": "financial_report_06_segment_performance",
+        "step_ids": [
+          "step_01"
+        ],
+        "trace_id": "trace_syn_financial_report_06_segment_performance"
+      },
+      {
+        "candidate_ids": [
+          "candidate_adapter_norm_inv"
+        ],
+        "scenario_id": "financial_report_08_receivable_aging",
+        "step_ids": [
+          "step_01"
+        ],
+        "trace_id": "trace_syn_financial_report_08_receivable_aging"
+      },
+      {
+        "candidate_ids": [],
+        "scenario_id": "financial_report_10_management_summary",
+        "step_ids": [
+          "step_01"
+        ],
+        "trace_id": "trace_syn_financial_report_10_management_summary"
+      }
+    ],
+    "test_suite_ref": "suite.financial_report.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

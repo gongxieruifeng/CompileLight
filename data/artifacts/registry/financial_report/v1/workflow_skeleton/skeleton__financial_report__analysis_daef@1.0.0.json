@@ -1,0 +1,174 @@
+{
+  "asset": {
+    "asset_id": "skeleton.financial_report.analysis_daef",
+    "body": {
+      "binds_asset_refs": false,
+      "directly_executable": false,
+      "kind": "WORKFLOW_SKELETON",
+      "stages": [
+        {
+          "expected_state": "财务快照、期间口径和风险约束已读取。",
+          "required_invariants": [
+            "只使用合成或已脱敏数据"
+          ],
+          "stage": "INFORMATION"
+        },
+        {
+          "expected_state": "原始报表视图已转换为标准分析 Contract。",
+          "required_invariants": [
+            "Extractor 候选只能沉淀为 Tool 或 FSM 内部逻辑"
+          ],
+          "stage": "TRANSFORM"
+        },
+        {
+          "expected_state": "公式、重大性和风险阈值由固定策略决定。",
+          "required_invariants": [
+            "高风险输出保留人工复核"
+          ],
+          "stage": "DECISION"
+        },
+        {
+          "expected_state": "只生成分析结果、差异报告或摘要草稿。",
+          "required_invariants": [
+            "不修改真实报表、预算或应收系统"
+          ],
+          "stage": "ACTION"
+        },
+        {
+          "expected_state": "完成状态必须由独立 Validator 验证。",
+          "required_invariants": [
+            "模型不能自报 validated=true 绕过检查"
+          ],
+          "stage": "VALIDATION"
+        }
+      ]
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "返回宏观阶段，不绑定具体资产版本"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "DAEF_STAGE_INVALID"
+      ],
+      "goal": "提供财报分析任务可复用的 DAEF 宏观规划先验，不作为执行图。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "constraints": {
+            "type": "array"
+          },
+          "objective": {
+            "type": "string"
+          },
+          "risk_level": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "objective"
+        ],
+        "title": "FinancialReportObjective",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "financial_report.daef.analysis",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "directly_executable": {
+            "type": "boolean"
+          },
+          "stages": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "stages",
+          "directly_executable"
+        ],
+        "title": "FinancialReportDaefPrior",
+        "type": "object"
+      },
+      "preconditions": [
+        "只用于规划先验读取"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "financial_report",
+    "kind": "WORKFLOW_SKELETON",
+    "owner": "financial_report_poc",
+    "recall_policy": "PLANNING_PRIOR",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "直接执行具体公式",
+        "绑定具体资产版本"
+      ],
+      "input_type_summary": "FinancialReportObjective",
+      "keywords": [
+        "DAEF",
+        "财报",
+        "分析",
+        "规划先验",
+        "验证"
+      ],
+      "name": "财报分析 DAEF",
+      "output_type_summary": "FinancialReportDaefPrior",
+      "positive_triggers": [
+        "规划财报分析执行流",
+        "财报 DAEF 骨架",
+        "报表验证先验"
+      ],
+      "summary": "用于财报分析任务的信息读取、视图归一、计算决策、报告草稿和验证阶段先验。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [],
+        "scenario_id": "financial_report_01_balance_sheet_reconcile",
+        "step_ids": [
+          "step_01",
+          "step_04"
+        ],
+        "trace_id": "trace_syn_financial_report_01_balance_sheet_reconcile"
+      },
+      {
+        "candidate_ids": [],
+        "scenario_id": "financial_report_03_cashflow_anomaly",
+        "step_ids": [
+          "step_01",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_financial_report_03_cashflow_anomaly"
+      },
+      {
+        "candidate_ids": [],
+        "scenario_id": "financial_report_08_receivable_aging",
+        "step_ids": [
+          "step_01",
+          "step_04"
+        ],
+        "trace_id": "trace_syn_financial_report_08_receivable_aging"
+      },
+      {
+        "candidate_ids": [],
+        "scenario_id": "financial_report_10_management_summary",
+        "step_ids": [
+          "step_01",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_financial_report_10_management_summary"
+      }
+    ],
+    "test_suite_ref": "suite.financial_report.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

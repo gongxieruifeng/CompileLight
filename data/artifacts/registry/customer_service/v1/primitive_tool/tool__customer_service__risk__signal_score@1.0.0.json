@@ -1,0 +1,150 @@
+{
+  "asset": {
+    "asset_id": "tool.customer_service.risk.signal_score",
+    "body": {
+      "directly_executable": true,
+      "handler_ref": "python://reduce_token_agent.assets_runtime.customer_service:risk_signal_score",
+      "invocation": "FUNCTION",
+      "kind": "PRIMITIVE_TOOL",
+      "operation_count": 1
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只输出风险分层，不执行账户写操作"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "CASE_KIND_UNSUPPORTED",
+        "RISK_SIGNAL_INVALID"
+      ],
+      "goal": "根据合成风险信号给出确定性风险等级和人工路由建议。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "type": "number"
+          },
+          "case_kind": {
+            "type": "string"
+          },
+          "evidence_complete": {
+            "type": "boolean"
+          },
+          "signals": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "case_kind",
+          "signals"
+        ],
+        "title": "RiskSignalInput",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "customer_service.risk.signal_score",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "blocking_signals": {
+            "type": "array"
+          },
+          "human_review_required": {
+            "type": "boolean"
+          },
+          "recommended_route": {
+            "type": "string"
+          },
+          "risk_band": {
+            "type": "string"
+          },
+          "risk_score": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "risk_score",
+          "risk_band",
+          "recommended_route",
+          "human_review_required"
+        ],
+        "title": "RiskScoreDecision",
+        "type": "object"
+      },
+      "preconditions": [
+        "风险信号来自合成上下文或已脱敏对话"
+      ],
+      "required_scopes": [],
+      "side_effect": "READ_ONLY",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "customer_service",
+    "kind": "PRIMITIVE_TOOL",
+    "owner": "customer_service_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "直接冻结账户",
+        "直接修改客户状态",
+        "替代人工审批"
+      ],
+      "input_type_summary": "RiskSignalInput",
+      "keywords": [
+        "风险",
+        "欺诈",
+        "人工升级",
+        "安全",
+        "高敏"
+      ],
+      "name": "客服风险信号评分",
+      "output_type_summary": "RiskScoreDecision",
+      "positive_triggers": [
+        "计算客服风险评分",
+        "判断是否人工升级",
+        "识别安全团队路由"
+      ],
+      "summary": "对欺诈、资料变更、提前还款和征信异议等高敏客服场景计算本地风险路由。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_01_risk_scoring_tool"
+        ],
+        "scenario_id": "customer_service_05_fraud_report",
+        "step_ids": [
+          "step_01"
+        ],
+        "trace_id": "trace_syn_customer_service_05_fraud_report"
+      },
+      {
+        "candidate_ids": [
+          "candidate_02_risk_policy_gate"
+        ],
+        "scenario_id": "customer_service_07_profile_correction",
+        "step_ids": [
+          "step_02"
+        ],
+        "trace_id": "trace_syn_customer_service_07_profile_correction"
+      },
+      {
+        "candidate_ids": [
+          "candidate_case_fsm_v1"
+        ],
+        "scenario_id": "customer_service_08_credit_dispute",
+        "step_ids": [
+          "step_03"
+        ],
+        "trace_id": "trace_syn_customer_service_08_credit_dispute"
+      }
+    ],
+    "test_suite_ref": "suite.customer_service.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

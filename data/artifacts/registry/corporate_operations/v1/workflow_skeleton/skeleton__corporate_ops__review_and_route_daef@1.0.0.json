@@ -1,0 +1,173 @@
+{
+  "asset": {
+    "asset_id": "skeleton.corporate_ops.review_and_route_daef",
+    "body": {
+      "binds_asset_refs": false,
+      "directly_executable": false,
+      "kind": "WORKFLOW_SKELETON",
+      "stages": [
+        {
+          "expected_state": "请求、上下文和约束已经收集并具有来源",
+          "required_invariants": [
+            "不在本阶段做业务批准"
+          ],
+          "stage": "INFORMATION"
+        },
+        {
+          "expected_state": "输入已转换为下游可使用的类型化事实",
+          "required_invariants": [
+            "转换不引入外部副作用"
+          ],
+          "stage": "TRANSFORM"
+        },
+        {
+          "expected_state": "规则、依赖和风险已经形成结构化决策",
+          "required_invariants": [
+            "关键歧义必须进入人工或澄清"
+          ],
+          "stage": "DECISION"
+        },
+        {
+          "expected_state": "允许的行动或处理路由已经完成",
+          "required_invariants": [
+            "写操作必须经过权限和幂等检查"
+          ],
+          "stage": "ACTION"
+        },
+        {
+          "expected_state": "独立 Validator 已证明目标完成或给出失败码",
+          "required_invariants": [
+            "模型不能批准自己的输出"
+          ],
+          "stage": "VALIDATION"
+        }
+      ]
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只提供规划先验，不产生可执行计划或业务副作用"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "TASK_GOAL_UNCLEAR",
+        "CONSTRAINTS_MISSING"
+      ],
+      "goal": "为审查和路由类任务提供不绑定具体资产的宏观阶段规划先验。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "constraints": {
+            "type": "array"
+          },
+          "request": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "request",
+          "constraints"
+        ],
+        "title": "GenericBusinessRequest",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "corporate_ops.daef.review_and_route",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "required_invariants": {
+            "type": "array"
+          },
+          "stages": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "stages",
+          "required_invariants"
+        ],
+        "title": "DAEFPlanningPrior",
+        "type": "object"
+      },
+      "preconditions": [
+        "任务包含可验证的目标和约束"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "corporate_operations",
+    "kind": "WORKFLOW_SKELETON",
+    "owner": "corporate_operations_poc",
+    "recall_policy": "PLANNING_PRIOR",
+    "release_status": "DRAFT",
+    "risk_level": "LOW",
+    "route_header": {
+      "anti_triggers": [
+        "请求直接执行某个已知函数",
+        "只需要字段格式转换"
+      ],
+      "input_type_summary": "GenericBusinessRequest",
+      "keywords": [
+        "DAEF",
+        "信息",
+        "转换",
+        "决策",
+        "行动",
+        "验证"
+      ],
+      "name": "信息规范化—规则决策—行动—验证 DAEF",
+      "output_type_summary": "DAEFPlanningPrior",
+      "positive_triggers": [
+        "需要构建审查与路由类宏观计划",
+        "信息经过规则判断后形成行动"
+      ],
+      "summary": "用于企业管理审查与路由任务的领域无关宏观阶段先验，不绑定任何具体 Tool 或 FSM。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [],
+        "scenario_id": "corporate_operations_01_expense_reimbursement",
+        "step_ids": [
+          "step_01",
+          "step_04"
+        ],
+        "trace_id": "trace_syn_corporate_operations_01_expense_reimbursement"
+      },
+      {
+        "candidate_ids": [],
+        "scenario_id": "corporate_operations_02_procurement_approval",
+        "step_ids": [
+          "step_01",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_corporate_operations_02_procurement_approval"
+      },
+      {
+        "candidate_ids": [],
+        "scenario_id": "corporate_operations_03_employee_onboarding",
+        "step_ids": [
+          "step_01",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_corporate_operations_03_employee_onboarding"
+      },
+      {
+        "candidate_ids": [],
+        "scenario_id": "corporate_operations_04_leave_workflow",
+        "step_ids": [
+          "step_01",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_corporate_operations_04_leave_workflow"
+      }
+    ],
+    "test_suite_ref": "suite.corporate_operations.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

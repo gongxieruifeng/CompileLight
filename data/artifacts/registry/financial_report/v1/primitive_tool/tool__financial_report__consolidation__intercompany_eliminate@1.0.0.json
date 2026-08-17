@@ -1,0 +1,118 @@
+{
+  "asset": {
+    "asset_id": "tool.financial_report.consolidation.intercompany_eliminate",
+    "body": {
+      "directly_executable": true,
+      "handler_ref": "python://reduce_token_agent.assets_runtime.financial_report:intercompany_eliminate",
+      "invocation": "FUNCTION",
+      "kind": "PRIMITIVE_TOOL",
+      "operation_count": 1
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只生成本地抵销结果，不写入会计系统"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "SEGMENT_SCHEMA_INVALID",
+        "NEGATIVE_CONSOLIDATION"
+      ],
+      "goal": "对合成分部数据执行确定性内部交易抵销，供分部表现分析复用。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "fx_rates": {
+            "type": "object"
+          },
+          "reporting_currency": {
+            "type": "string"
+          },
+          "segments": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "segments"
+        ],
+        "title": "SegmentConsolidationInput",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "financial_report.consolidation.intercompany_eliminate",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "consolidated_revenue": {
+            "type": "number"
+          },
+          "elimination_entries": {
+            "type": "array"
+          },
+          "segments": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "segments",
+          "consolidated_revenue",
+          "elimination_entries"
+        ],
+        "title": "SegmentConsolidationResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "分部数据已归一或附带合成汇率"
+      ],
+      "required_scopes": [],
+      "side_effect": "READ_ONLY",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "financial_report",
+    "kind": "PRIMITIVE_TOOL",
+    "owner": "financial_report_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "生成真实会计分录",
+        "写入合并报表系统"
+      ],
+      "input_type_summary": "SegmentConsolidationInput",
+      "keywords": [
+        "分部",
+        "抵销",
+        "合并",
+        "内部交易",
+        "收入"
+      ],
+      "name": "分部内部交易抵销",
+      "output_type_summary": "SegmentConsolidationResult",
+      "positive_triggers": [
+        "抵销内部交易",
+        "合并分部收入",
+        "计算分部贡献"
+      ],
+      "summary": "对统一币种后的分部经营数据执行本地内部交易抵销计算。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_03_elimination_tool"
+        ],
+        "scenario_id": "financial_report_06_segment_performance",
+        "step_ids": [
+          "step_03"
+        ],
+        "trace_id": "trace_syn_financial_report_06_segment_performance"
+      }
+    ],
+    "test_suite_ref": "suite.financial_report.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

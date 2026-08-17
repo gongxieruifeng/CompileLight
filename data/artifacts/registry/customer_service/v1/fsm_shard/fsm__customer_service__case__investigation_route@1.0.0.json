@@ -1,0 +1,177 @@
+{
+  "asset": {
+    "asset_id": "fsm.customer_service.case.investigation_route",
+    "body": {
+      "directly_executable": true,
+      "kind": "FSM_SHARD",
+      "start_state": "facts_ready",
+      "states": [
+        {
+          "invariant": "客户主张和系统快照已结构化。",
+          "state_id": "facts_ready"
+        },
+        {
+          "invariant": "声明时间、到账时间或错误码可比较。",
+          "state_id": "compare"
+        },
+        {
+          "invariant": "路由只能是解释、排障或人工复核。",
+          "state_id": "route"
+        },
+        {
+          "invariant": "结果等待独立 Validator 检查无写操作。",
+          "state_id": "validated"
+        }
+      ],
+      "subgoal": "完成支付异常类客服问题的只读调查与路由。",
+      "terminal_states": [
+        "validated"
+      ],
+      "transitions": [
+        {
+          "event": "PAYMENT_FACTS_COMPLETE",
+          "from_state": "facts_ready",
+          "guard": "包含支付金额、时间或错误码",
+          "to_state": "compare"
+        },
+        {
+          "event": "CAUSE_CLASSIFIED",
+          "from_state": "compare",
+          "guard": "原因码来自固定枚举",
+          "to_state": "route"
+        },
+        {
+          "event": "ROUTE_BUILT",
+          "from_state": "route",
+          "guard": "未产生账单修改或扣款动作",
+          "to_state": "validated"
+        }
+      ]
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "生成只读解释或人工升级建议，不修改账单"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "CASE_TYPE_UNSUPPORTED",
+        "PAYMENT_FACTS_INCOMPLETE"
+      ],
+      "goal": "对支付相关客服异常执行只读调查并给出解释或人工升级路由。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "case_snapshot": {
+            "type": "object"
+          },
+          "case_type": {
+            "type": "string"
+          },
+          "claim_context": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "case_type",
+          "claim_context",
+          "case_snapshot"
+        ],
+        "title": "CaseInvestigationRequest",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "customer_service.case.investigation_route",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "cause_code": {
+            "type": "string"
+          },
+          "customer_message_draft": {
+            "type": "string"
+          },
+          "next_steps": {
+            "type": "array"
+          },
+          "resolution_route": {
+            "type": "string"
+          },
+          "side_effects_allowed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "resolution_route",
+          "cause_code",
+          "customer_message_draft"
+        ],
+        "title": "CaseInvestigationResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "支付主张或错误码已结构化，账单/日志快照已加载"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "customer_service",
+    "kind": "FSM_SHARD",
+    "owner": "customer_service_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "调整费用",
+        "重新发起扣款",
+        "修改账单"
+      ],
+      "input_type_summary": "CaseInvestigationRequest",
+      "keywords": [
+        "逾期",
+        "投诉",
+        "支付失败",
+        "错误码",
+        "排障"
+      ],
+      "name": "支付异常与投诉调查路由",
+      "output_type_summary": "CaseInvestigationResult",
+      "positive_triggers": [
+        "核查逾期费投诉",
+        "定位扣款失败原因",
+        "生成只读排障步骤"
+      ],
+      "summary": "覆盖逾期费用投诉和还款失败排障的只读调查状态图。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [],
+        "scenario_id": "customer_service_02_overdue_complaint",
+        "step_ids": [
+          "step_01",
+          "step_02",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_customer_service_02_overdue_complaint"
+      },
+      {
+        "candidate_ids": [],
+        "scenario_id": "customer_service_06_payment_failure",
+        "step_ids": [
+          "step_01",
+          "step_02",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_customer_service_06_payment_failure"
+      }
+    ],
+    "test_suite_ref": "suite.customer_service.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

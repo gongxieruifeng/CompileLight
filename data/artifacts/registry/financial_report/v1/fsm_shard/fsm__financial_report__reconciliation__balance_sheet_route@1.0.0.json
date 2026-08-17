@@ -1,0 +1,163 @@
+{
+  "asset": {
+    "asset_id": "fsm.financial_report.reconciliation.balance_sheet_route",
+    "body": {
+      "directly_executable": true,
+      "kind": "FSM_SHARD",
+      "start_state": "normalize",
+      "states": [
+        {
+          "invariant": "报表字段已映射到标准视图。",
+          "state_id": "normalize"
+        },
+        {
+          "invariant": "资产与负债权益差额可重复计算。",
+          "state_id": "calculate"
+        },
+        {
+          "invariant": "差异状态来自容忍度规则。",
+          "state_id": "classify"
+        },
+        {
+          "invariant": "结构化结果等待独立 Validator。",
+          "state_id": "validated"
+        }
+      ],
+      "subgoal": "完成资产负债表恒等式勾稽与差异复核路由。",
+      "terminal_states": [
+        "validated"
+      ],
+      "transitions": [
+        {
+          "event": "VIEW_READY",
+          "from_state": "normalize",
+          "guard": "标准字段完整",
+          "to_state": "calculate"
+        },
+        {
+          "event": "VARIANCE_COMPUTED",
+          "from_state": "calculate",
+          "guard": "差额为有效数字",
+          "to_state": "classify"
+        },
+        {
+          "event": "ROUTE_BUILT",
+          "from_state": "classify",
+          "guard": "失败时保留人工复核",
+          "to_state": "validated"
+        }
+      ]
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只输出差异和复核建议，不修改报表"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "STATEMENT_SCHEMA_INVALID",
+        "RECONCILIATION_INCOMPLETE"
+      ],
+      "goal": "完成资产负债表勾稽检查并输出结构化差异报告。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "statement_snapshot": {
+            "type": "object"
+          },
+          "tolerance": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "statement_snapshot"
+        ],
+        "title": "BalanceSheetReconciliationRequest",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "financial_report.reconciliation.balance_sheet_route",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "discrepancies": {
+            "type": "array"
+          },
+          "human_review_required": {
+            "type": "boolean"
+          },
+          "is_balanced": {
+            "type": "boolean"
+          },
+          "reconciliation_status": {
+            "type": "string"
+          },
+          "variance_amount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "reconciliation_status",
+          "variance_amount",
+          "is_balanced"
+        ],
+        "title": "BalanceSheetReconciliationResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "报表快照已归一为标准资产、负债、权益字段"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "financial_report",
+    "kind": "FSM_SHARD",
+    "owner": "financial_report_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "自动改账",
+        "生成真实调整分录"
+      ],
+      "input_type_summary": "BalanceSheetReconciliationRequest",
+      "keywords": [
+        "资产负债表",
+        "勾稽",
+        "差异",
+        "平衡",
+        "复核"
+      ],
+      "name": "资产负债表勾稽路由",
+      "output_type_summary": "BalanceSheetReconciliationResult",
+      "positive_triggers": [
+        "资产负债表不平",
+        "会计恒等式校验",
+        "勾稽差异分析"
+      ],
+      "summary": "对资产负债表执行字段归一、恒等式勾稽、差异定位和人工复核路由。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_02_reconciliation_validator"
+        ],
+        "scenario_id": "financial_report_01_balance_sheet_reconcile",
+        "step_ids": [
+          "step_02",
+          "step_03",
+          "step_04"
+        ],
+        "trace_id": "trace_syn_financial_report_01_balance_sheet_reconcile"
+      }
+    ],
+    "test_suite_ref": "suite.financial_report.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

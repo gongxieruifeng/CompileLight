@@ -1,0 +1,145 @@
+{
+  "asset": {
+    "asset_id": "tool.customer_service.dialogue.intent_normalize",
+    "body": {
+      "directly_executable": true,
+      "handler_ref": "python://reduce_token_agent.assets_runtime.customer_service:intent_normalize",
+      "invocation": "FUNCTION",
+      "kind": "PRIMITIVE_TOOL",
+      "operation_count": 1
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只返回结构化意图，不写入会话或客户资料"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "INTENT_UNSUPPORTED",
+        "SOURCE_TEXT_EMPTY"
+      ],
+      "goal": "将客户自然语言请求转换为后续客服执行流可消费的稳定意图结构。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "scenario_hint": {
+            "type": "string"
+          },
+          "source_text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_text"
+        ],
+        "title": "CustomerDialogueInput",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "customer_service.dialogue.intent_normalize",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "entities": {
+            "type": "object"
+          },
+          "human_review_hint": {
+            "type": "boolean"
+          },
+          "intent_category": {
+            "type": "string"
+          },
+          "risk_level": {
+            "type": "string"
+          },
+          "route_family": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "intent_category",
+          "route_family",
+          "risk_level",
+          "entities"
+        ],
+        "title": "CustomerIntentProfile",
+        "type": "object"
+      },
+      "preconditions": [
+        "输入文本来自合成客服 Trace 或测试样例"
+      ],
+      "required_scopes": [],
+      "side_effect": "READ_ONLY",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "customer_service",
+    "kind": "PRIMITIVE_TOOL",
+    "owner": "customer_service_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "LOW",
+    "route_header": {
+      "anti_triggers": [
+        "生成最终客服回复",
+        "修改客户资料",
+        "创建真实工单"
+      ],
+      "input_type_summary": "CustomerDialogueInput",
+      "keywords": [
+        "客服",
+        "意图",
+        "归一",
+        "风险",
+        "实体"
+      ],
+      "name": "客服意图与风险归一",
+      "output_type_summary": "CustomerIntentProfile",
+      "positive_triggers": [
+        "识别客服对话意图",
+        "归一客户请求",
+        "提取客服任务实体"
+      ],
+      "summary": "把合成客服对话归一为意图、路由族、实体和初始风险提示。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [],
+        "scenario_id": "customer_service_01_repayment_inquiry",
+        "step_ids": [
+          "step_01"
+        ],
+        "trace_id": "trace_syn_customer_service_01_repayment_inquiry"
+      },
+      {
+        "candidate_ids": [],
+        "scenario_id": "customer_service_03_rate_explanation",
+        "step_ids": [
+          "step_01"
+        ],
+        "trace_id": "trace_syn_customer_service_03_rate_explanation"
+      },
+      {
+        "candidate_ids": [],
+        "scenario_id": "customer_service_04_prepayment_request",
+        "step_ids": [
+          "step_01"
+        ],
+        "trace_id": "trace_syn_customer_service_04_prepayment_request"
+      },
+      {
+        "candidate_ids": [],
+        "scenario_id": "customer_service_05_fraud_report",
+        "step_ids": [
+          "step_01"
+        ],
+        "trace_id": "trace_syn_customer_service_05_fraud_report"
+      }
+    ],
+    "test_suite_ref": "suite.customer_service.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

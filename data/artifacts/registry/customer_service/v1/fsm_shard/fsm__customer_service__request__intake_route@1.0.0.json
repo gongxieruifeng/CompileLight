@@ -1,0 +1,191 @@
+{
+  "asset": {
+    "asset_id": "fsm.customer_service.request.intake_route",
+    "body": {
+      "directly_executable": true,
+      "kind": "FSM_SHARD",
+      "start_state": "extract",
+      "states": [
+        {
+          "invariant": "请求字段来自受控抽取。",
+          "state_id": "extract"
+        },
+        {
+          "invariant": "缺失字段来自固定业务 Schema。",
+          "state_id": "gap_check"
+        },
+        {
+          "invariant": "高敏请求不得自动写入。",
+          "state_id": "risk_gate"
+        },
+        {
+          "invariant": "只生成本地草稿和人工下一步。",
+          "state_id": "draft_ticket"
+        },
+        {
+          "invariant": "受理结果已等待 Validator 检查。",
+          "state_id": "validated"
+        }
+      ],
+      "subgoal": "完成提前还款或资料更正类客服请求的可审核受理。",
+      "terminal_states": [
+        "validated"
+      ],
+      "transitions": [
+        {
+          "event": "FACTS_EXTRACTED",
+          "from_state": "extract",
+          "guard": "事实中包含 request_type",
+          "to_state": "gap_check"
+        },
+        {
+          "event": "GAPS_IDENTIFIED",
+          "from_state": "gap_check",
+          "guard": "缺失字段只来自固定 Schema",
+          "to_state": "risk_gate"
+        },
+        {
+          "event": "RISK_ROUTED",
+          "from_state": "risk_gate",
+          "guard": "高敏请求保留人工复核",
+          "to_state": "draft_ticket"
+        },
+        {
+          "event": "DRAFT_CREATED",
+          "from_state": "draft_ticket",
+          "guard": "未产生真实客户资料或贷款状态写入",
+          "to_state": "validated"
+        }
+      ]
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "生成本地草稿和人工处理提示，不提交真实申请"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "REQUEST_TYPE_UNSUPPORTED",
+        "REQUIRED_FIELDS_UNKNOWN"
+      ],
+      "goal": "对高敏客服请求生成最小可审核草稿和缺失信息清单。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "extracted_facts": {
+            "type": "object"
+          },
+          "request_type": {
+            "type": "string"
+          },
+          "risk_decision": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "request_type",
+          "extracted_facts"
+        ],
+        "title": "RequestIntakeRequest",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "customer_service.request.intake_route",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "draft_id": {
+            "type": "string"
+          },
+          "human_review_required": {
+            "type": "boolean"
+          },
+          "missing_fields": {
+            "type": "array"
+          },
+          "route": {
+            "type": "string"
+          },
+          "side_effects_allowed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "route",
+          "missing_fields",
+          "draft_id",
+          "human_review_required"
+        ],
+        "title": "RequestIntakeResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "请求事实已结构化，禁止真实写入客户系统"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "customer_service",
+    "kind": "FSM_SHARD",
+    "owner": "customer_service_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "HIGH",
+    "route_header": {
+      "anti_triggers": [
+        "直接修改客户资料",
+        "直接提交真实还款申请"
+      ],
+      "input_type_summary": "RequestIntakeRequest",
+      "keywords": [
+        "提前还款",
+        "资料更正",
+        "缺失字段",
+        "人工审核",
+        "工单"
+      ],
+      "name": "高敏请求受理与工单草稿路由",
+      "output_type_summary": "RequestIntakeResult",
+      "positive_triggers": [
+        "受理提前还款申请",
+        "受理地址修改",
+        "识别缺失字段",
+        "生成待人工处理工单"
+      ],
+      "summary": "覆盖提前还款申请和客户资料更正的字段缺口、风险门禁与人工工单草稿。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_01_gap_analyzer"
+        ],
+        "scenario_id": "customer_service_04_prepayment_request",
+        "step_ids": [
+          "step_01",
+          "step_02",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_customer_service_04_prepayment_request"
+      },
+      {
+        "candidate_ids": [
+          "candidate_02_risk_policy_gate"
+        ],
+        "scenario_id": "customer_service_07_profile_correction",
+        "step_ids": [
+          "step_01",
+          "step_02",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_customer_service_07_profile_correction"
+      }
+    ],
+    "test_suite_ref": "suite.customer_service.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

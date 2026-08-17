@@ -1,0 +1,168 @@
+{
+  "asset": {
+    "asset_id": "fsm.corporate_ops.procurement.approval_route",
+    "body": {
+      "directly_executable": true,
+      "kind": "FSM_SHARD",
+      "start_state": "received",
+      "states": [
+        {
+          "invariant": "采购申请字段已经结构化",
+          "state_id": "received"
+        },
+        {
+          "invariant": "附件与供应商状态已经检查",
+          "state_id": "dependencies_checked"
+        },
+        {
+          "invariant": "金额阈值映射为审批层级",
+          "state_id": "threshold_routed"
+        },
+        {
+          "invariant": "阻断原因和审批路径不可同时缺失",
+          "state_id": "route_ready"
+        }
+      ],
+      "subgoal": "完成采购申请依赖检查和审批层级路由。",
+      "terminal_states": [
+        "route_ready"
+      ],
+      "transitions": [
+        {
+          "event": "CHECK_DEPENDENCIES",
+          "from_state": "received",
+          "guard": "供应商状态快照存在",
+          "to_state": "dependencies_checked"
+        },
+        {
+          "event": "APPLY_THRESHOLD",
+          "from_state": "dependencies_checked",
+          "guard": "金额阈值政策版本存在",
+          "to_state": "threshold_routed"
+        },
+        {
+          "event": "BUILD_ROUTE",
+          "from_state": "threshold_routed",
+          "guard": "依赖与阈值结果均已形成",
+          "to_state": "route_ready"
+        }
+      ]
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只形成审批路径，不创建采购订单"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "THRESHOLD_POLICY_MISSING",
+        "VENDOR_STATUS_UNAVAILABLE"
+      ],
+      "goal": "形成采购申请的确定性审批路径并暴露缺失依赖。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "type": "number"
+          },
+          "attachments_complete": {
+            "type": "boolean"
+          },
+          "category": {
+            "type": "string"
+          },
+          "vendor_status": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "amount",
+          "category",
+          "attachments_complete",
+          "vendor_status"
+        ],
+        "title": "ProcurementRoutingInput",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "corporate_ops.procurement.approval_route",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "block_reasons": {
+            "type": "array"
+          },
+          "blocked": {
+            "type": "boolean"
+          },
+          "human_review_required": {
+            "type": "boolean"
+          },
+          "route_levels": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "route_levels",
+          "blocked",
+          "block_reasons",
+          "human_review_required"
+        ],
+        "title": "ProcurementApprovalRoute",
+        "type": "object"
+      },
+      "preconditions": [
+        "金额、品类、附件状态和供应商状态均有明确来源"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "corporate_operations",
+    "kind": "FSM_SHARD",
+    "owner": "corporate_operations_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "创建最终采购订单",
+        "执行供应商准入"
+      ],
+      "input_type_summary": "ProcurementRequestFacts + VendorStatusSnapshot",
+      "keywords": [
+        "采购",
+        "审批",
+        "金额阈值",
+        "附件",
+        "供应商"
+      ],
+      "name": "采购审批路由",
+      "output_type_summary": "ProcurementApprovalRoute",
+      "positive_triggers": [
+        "生成采购审批路径",
+        "检查金额和供应商状态"
+      ],
+      "summary": "依据金额阈值、附件完整性和供应商状态形成采购审批路径或人工阻断。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_approval_fsm"
+        ],
+        "scenario_id": "corporate_operations_02_procurement_approval",
+        "step_ids": [
+          "step_02",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_corporate_operations_02_procurement_approval"
+      }
+    ],
+    "test_suite_ref": "suite.corporate_operations.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

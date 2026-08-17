@@ -1,0 +1,73 @@
+# ========== 环境与配置 ==========
+# Project-local Conda environment
+.conda/
+venv/
+.venv/
+env/
+
+# Local configuration and secrets (example files are kept)
+.env
+
+# ========== Python 缓存 ==========
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+build/
+dist/
+eggs/
+wheels/
+share/python-wheels/
+
+# ========== 测试 & 质量工具缓存 ==========
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+
+# ========== 运行时数据（中间结果，不上传） ==========
+# SQLite databases & checkpoint files
+data/db/*.sqlite3
+data/db/*.sqlite3-*
+data/db/*.db
+data/db/*.db-*
+data/db/*.wal
+data/db/*.shm
+data/db/*.journal
+
+# Runtime artifacts (compiled runtime bindings - generated at seed time)
+data/artifacts/runtime/
+
+# Runtime traces and reports
+data/runtime/
+data/traces/
+data/reports/
+logs/
+*.log
+
+# ========== 编辑器 & 操作系统元数据 ==========
+.DS_Store
+.AppleDouble
+.LSOverride
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ========== 设计过程临时素材（不上传） ==========
+# 根目录下的设计图片资源（过程中间素材）
+/assets/
+
+# 临时研究文档（保留核心设计文档在 docs/）
+/doc/
+
+# ========== 其他 ==========
+*.bak
+*.tmp
+*.old

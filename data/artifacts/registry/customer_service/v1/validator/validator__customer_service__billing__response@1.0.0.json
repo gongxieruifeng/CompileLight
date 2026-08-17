@@ -1,0 +1,136 @@
+{
+  "asset": {
+    "asset_id": "validator.customer_service.billing.response",
+    "body": {
+      "directly_executable": true,
+      "executor": "DECLARATIVE_RULESET",
+      "kind": "VALIDATOR",
+      "rules": [
+        {
+          "expected": null,
+          "failure_code": "RESPONSE_EMPTY",
+          "field": "payload.response_draft",
+          "operator": "EXISTS"
+        },
+        {
+          "expected": null,
+          "failure_code": "DISCLOSURE_INCOMPLETE",
+          "field": "payload.disclosure_items",
+          "operator": "EXISTS"
+        },
+        {
+          "expected": true,
+          "failure_code": "SENSITIVE_DATA_DETECTED",
+          "field": "payload.sensitive_fields_removed",
+          "operator": "EQ"
+        }
+      ],
+      "validates_schema": "BillingAnswerResult"
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只返回验证结果和失败码"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "DISCLOSURE_INCOMPLETE",
+        "SENSITIVE_DATA_DETECTED"
+      ],
+      "goal": "独立验证账务咨询回复的完成状态和合规披露。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "payload": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "payload"
+        ],
+        "title": "BillingAnswerResult",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "customer_service.validator.billing_response",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "failure_codes": {
+            "type": "array"
+          },
+          "valid": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "valid",
+          "failure_codes"
+        ],
+        "title": "ValidationResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "待验证 payload 来自账务回复 FSM 或等价测试 fixture"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "customer_service",
+    "kind": "VALIDATOR",
+    "owner": "customer_service_poc",
+    "recall_policy": "GRAPH_ONLY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "生成客服回复正文",
+        "查询账单"
+      ],
+      "input_type_summary": "BillingAnswerResult",
+      "keywords": [
+        "Validator",
+        "账务回复",
+        "利率披露",
+        "脱敏"
+      ],
+      "name": "账务回复合规 Validator",
+      "output_type_summary": "ValidationResult",
+      "positive_triggers": [
+        "验证账务客服回复",
+        "检查利率披露",
+        "检查敏感信息脱敏"
+      ],
+      "summary": "验证还款金额日期或利率解释回复是否包含必要披露且不泄露敏感信息。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_02_response_validator"
+        ],
+        "scenario_id": "customer_service_01_repayment_inquiry",
+        "step_ids": [
+          "step_04"
+        ],
+        "trace_id": "trace_syn_customer_service_01_repayment_inquiry"
+      },
+      {
+        "candidate_ids": [
+          "candidate_disclosure_validator_v1"
+        ],
+        "scenario_id": "customer_service_03_rate_explanation",
+        "step_ids": [
+          "step_03"
+        ],
+        "trace_id": "trace_syn_customer_service_03_rate_explanation"
+      }
+    ],
+    "test_suite_ref": "suite.customer_service.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

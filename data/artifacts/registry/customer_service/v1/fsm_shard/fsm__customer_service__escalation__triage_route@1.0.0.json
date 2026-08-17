@@ -1,0 +1,201 @@
+{
+  "asset": {
+    "asset_id": "fsm.customer_service.escalation.triage_route",
+    "body": {
+      "directly_executable": true,
+      "kind": "FSM_SHARD",
+      "start_state": "signal_ready",
+      "states": [
+        {
+          "invariant": "风险信号和事实已结构化。",
+          "state_id": "signal_ready"
+        },
+        {
+          "invariant": "客户和交易敏感字段已脱敏。",
+          "state_id": "mask"
+        },
+        {
+          "invariant": "合规处理时限来自固定策略。",
+          "state_id": "deadline"
+        },
+        {
+          "invariant": "只路由人工团队，不执行真实写入。",
+          "state_id": "handoff"
+        },
+        {
+          "invariant": "升级结果等待 Validator 检查。",
+          "state_id": "validated"
+        }
+      ],
+      "subgoal": "完成欺诈和征信异议类高风险事件的安全升级。",
+      "terminal_states": [
+        "validated"
+      ],
+      "transitions": [
+        {
+          "event": "HIGH_RISK_CONFIRMED",
+          "from_state": "signal_ready",
+          "guard": "风险等级为 HIGH 或 case_type 强制人工",
+          "to_state": "mask"
+        },
+        {
+          "event": "MASKED",
+          "from_state": "mask",
+          "guard": "输出不包含完整 ID、卡号或验证码",
+          "to_state": "deadline"
+        },
+        {
+          "event": "DEADLINE_ASSIGNED",
+          "from_state": "deadline",
+          "guard": "时限不超过固定政策上限",
+          "to_state": "handoff"
+        },
+        {
+          "event": "HANDOFF_READY",
+          "from_state": "handoff",
+          "guard": "路由为人工团队且无真实写操作",
+          "to_state": "validated"
+        }
+      ]
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只生成升级工单草稿和时限计划"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "ESCALATION_TYPE_UNSUPPORTED",
+        "SENSITIVE_DATA_UNMASKED"
+      ],
+      "goal": "对高风险客服事件完成脱敏和人工升级路由，不执行真实账户或征信写入。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "case_facts": {
+            "type": "object"
+          },
+          "case_type": {
+            "type": "string"
+          },
+          "evidence_bundle": {
+            "type": "object"
+          },
+          "risk_decision": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "case_type",
+          "case_facts",
+          "risk_decision"
+        ],
+        "title": "EscalationTriageRequest",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "customer_service.escalation.triage_route",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "deadline_hours": {
+            "type": "number"
+          },
+          "handoff_team": {
+            "type": "string"
+          },
+          "human_review_required": {
+            "type": "boolean"
+          },
+          "masked_case_summary": {
+            "type": "string"
+          },
+          "sensitive_fields_removed": {
+            "type": "boolean"
+          },
+          "ticket_type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ticket_type",
+          "handoff_team",
+          "deadline_hours",
+          "masked_case_summary"
+        ],
+        "title": "EscalationTriageResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "高风险事实已脱敏或来自合成输入"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "customer_service",
+    "kind": "FSM_SHARD",
+    "owner": "customer_service_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "HIGH",
+    "route_header": {
+      "anti_triggers": [
+        "直接冻结账户",
+        "直接修改征信记录",
+        "索要密码验证码"
+      ],
+      "input_type_summary": "EscalationTriageRequest",
+      "keywords": [
+        "欺诈",
+        "征信异议",
+        "脱敏",
+        "升级",
+        "时限"
+      ],
+      "name": "欺诈与征信异议升级路由",
+      "output_type_summary": "EscalationTriageResult",
+      "positive_triggers": [
+        "处理欺诈上报",
+        "受理征信异议",
+        "生成安全团队路由",
+        "计算合规时限"
+      ],
+      "summary": "覆盖疑似欺诈和征信异议的脱敏、风险分层、工单与合规时限路由。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_02_fraud_fsm_state_machine"
+        ],
+        "scenario_id": "customer_service_05_fraud_report",
+        "step_ids": [
+          "step_01",
+          "step_02",
+          "step_03",
+          "step_04"
+        ],
+        "trace_id": "trace_syn_customer_service_05_fraud_report"
+      },
+      {
+        "candidate_ids": [
+          "candidate_case_fsm_v1"
+        ],
+        "scenario_id": "customer_service_08_credit_dispute",
+        "step_ids": [
+          "step_01",
+          "step_02",
+          "step_03",
+          "step_04"
+        ],
+        "trace_id": "trace_syn_customer_service_08_credit_dispute"
+      }
+    ],
+    "test_suite_ref": "suite.customer_service.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

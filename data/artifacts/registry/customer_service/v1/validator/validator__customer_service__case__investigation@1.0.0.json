@@ -1,0 +1,138 @@
+{
+  "asset": {
+    "asset_id": "validator.customer_service.case.investigation",
+    "body": {
+      "directly_executable": true,
+      "executor": "DECLARATIVE_RULESET",
+      "kind": "VALIDATOR",
+      "rules": [
+        {
+          "expected": null,
+          "failure_code": "ROUTE_MISSING",
+          "field": "payload.resolution_route",
+          "operator": "EXISTS"
+        },
+        {
+          "expected": null,
+          "failure_code": "CAUSE_CODE_MISSING",
+          "field": "payload.cause_code",
+          "operator": "EXISTS"
+        },
+        {
+          "expected": false,
+          "failure_code": "UNAUTHORIZED_WRITE",
+          "field": "payload.side_effects_allowed",
+          "operator": "EQ"
+        }
+      ],
+      "validates_schema": "CaseInvestigationResult"
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只返回验证结果，不改变账务状态"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "CAUSE_CODE_MISSING",
+        "UNAUTHORIZED_WRITE"
+      ],
+      "goal": "独立验证支付异常调查结果是否可安全交给客户或人工处理。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "payload": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "payload"
+        ],
+        "title": "CaseInvestigationResult",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "customer_service.validator.case_investigation",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "failure_codes": {
+            "type": "array"
+          },
+          "valid": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "valid",
+          "failure_codes"
+        ],
+        "title": "ValidationResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "payload 来自支付调查 FSM 或测试 fixture"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "customer_service",
+    "kind": "VALIDATOR",
+    "owner": "customer_service_poc",
+    "recall_policy": "GRAPH_ONLY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "重新发起扣款",
+        "修改费用"
+      ],
+      "input_type_summary": "CaseInvestigationResult",
+      "keywords": [
+        "Validator",
+        "逾期",
+        "支付失败",
+        "只读"
+      ],
+      "name": "支付调查结果 Validator",
+      "output_type_summary": "ValidationResult",
+      "positive_triggers": [
+        "验证逾期费解释",
+        "验证支付失败排障",
+        "检查无写操作"
+      ],
+      "summary": "验证投诉或支付失败调查结果是否只读、原因明确且包含下一步建议。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_02_delay_validator"
+        ],
+        "scenario_id": "customer_service_02_overdue_complaint",
+        "step_ids": [
+          "step_02",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_customer_service_02_overdue_complaint"
+      },
+      {
+        "candidate_ids": [
+          "candidate_payment_fsm_v2"
+        ],
+        "scenario_id": "customer_service_06_payment_failure",
+        "step_ids": [
+          "step_02",
+          "step_03"
+        ],
+        "trace_id": "trace_syn_customer_service_06_payment_failure"
+      }
+    ],
+    "test_suite_ref": "suite.customer_service.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

@@ -1,0 +1,131 @@
+{
+  "asset": {
+    "asset_id": "tool.financial_report.summary.evidence_text_compose",
+    "body": {
+      "directly_executable": true,
+      "handler_ref": "python://reduce_token_agent.assets_runtime.financial_report:evidence_text_compose",
+      "invocation": "FUNCTION",
+      "kind": "PRIMITIVE_TOOL",
+      "operation_count": 1
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "只生成本地摘要草稿，不发布正式报告"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "CITATION_MISSING",
+        "SUMMARY_KIND_UNSUPPORTED"
+      ],
+      "goal": "把已验证的关键财务指标转换为带证据引用的摘要草稿。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_refs": {
+            "type": "array"
+          },
+          "key_metrics": {
+            "type": "array"
+          },
+          "summary_kind": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "summary_kind",
+          "key_metrics",
+          "evidence_refs"
+        ],
+        "title": "EvidenceSummaryInput",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "financial_report.summary.evidence_text_compose",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "citations": {
+            "type": "array"
+          },
+          "length_ok": {
+            "type": "boolean"
+          },
+          "summary_text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "summary_text",
+          "citations",
+          "length_ok"
+        ],
+        "title": "EvidenceSummaryDraft",
+        "type": "object"
+      },
+      "preconditions": [
+        "输入指标已经由上游 Validator 或固定规则校验"
+      ],
+      "required_scopes": [],
+      "side_effect": "READ_ONLY",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "financial_report",
+    "kind": "PRIMITIVE_TOOL",
+    "owner": "financial_report_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "替代管理层判断",
+        "引用未经验证指标",
+        "写入正式公告"
+      ],
+      "input_type_summary": "EvidenceSummaryInput",
+      "keywords": [
+        "摘要",
+        "证据",
+        "管理层",
+        "引用",
+        "报告"
+      ],
+      "name": "证据化财务摘要生成",
+      "output_type_summary": "EvidenceSummaryDraft",
+      "positive_triggers": [
+        "生成管理摘要",
+        "生成同比摘要",
+        "生成预算偏差说明"
+      ],
+      "summary": "根据已验证指标生成带引用的短财务摘要草稿。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_fsm_report_builder_v1"
+        ],
+        "scenario_id": "financial_report_02_income_yoy",
+        "step_ids": [
+          "step_04"
+        ],
+        "trace_id": "trace_syn_financial_report_02_income_yoy"
+      },
+      {
+        "candidate_ids": [
+          "candidate_tool_summary_gen_v1"
+        ],
+        "scenario_id": "financial_report_10_management_summary",
+        "step_ids": [
+          "step_03"
+        ],
+        "trace_id": "trace_syn_financial_report_10_management_summary"
+      }
+    ],
+    "test_suite_ref": "suite.financial_report.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

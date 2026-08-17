@@ -1,0 +1,176 @@
+{
+  "asset": {
+    "asset_id": "fsm.customer_service.billing.answer_route",
+    "body": {
+      "directly_executable": true,
+      "kind": "FSM_SHARD",
+      "start_state": "intake",
+      "states": [
+        {
+          "invariant": "客户问题已归一为受控意图。",
+          "state_id": "intake"
+        },
+        {
+          "invariant": "账单或合同事实来自合成快照。",
+          "state_id": "load_facts"
+        },
+        {
+          "invariant": "内部事实已投影为客户展示字段。",
+          "state_id": "project_reply"
+        },
+        {
+          "invariant": "回复草案已等待独立 Validator 检查。",
+          "state_id": "validated"
+        }
+      ],
+      "subgoal": "完成账务咨询或利率解释的确定性客服答复路由。",
+      "terminal_states": [
+        "validated"
+      ],
+      "transitions": [
+        {
+          "event": "INTENT_SUPPORTED",
+          "from_state": "intake",
+          "guard": "intent_category 属于还款咨询或利率解释",
+          "to_state": "load_facts"
+        },
+        {
+          "event": "FACTS_AVAILABLE",
+          "from_state": "load_facts",
+          "guard": "support_snapshot 含必需账单或利率字段",
+          "to_state": "project_reply"
+        },
+        {
+          "event": "REPLY_PROJECTED",
+          "from_state": "project_reply",
+          "guard": "输出包含披露要素且未暴露敏感字段",
+          "to_state": "validated"
+        }
+      ]
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "生成待验证回复草案，不发送消息"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "BILLING_ROUTE_UNSUPPORTED",
+        "DISCLOSURE_INCOMPLETE"
+      ],
+      "goal": "把账务或利率咨询路由到可验证客户答复，不处理高风险写操作。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "intent_profile": {
+            "type": "object"
+          },
+          "projection_kind": {
+            "type": "string"
+          },
+          "support_snapshot": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "intent_profile",
+          "support_snapshot",
+          "projection_kind"
+        ],
+        "title": "BillingAnswerRequest",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "customer_service.billing.answer_route",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "answer_type": {
+            "type": "string"
+          },
+          "disclosure_items": {
+            "type": "array"
+          },
+          "human_review_required": {
+            "type": "boolean"
+          },
+          "response_draft": {
+            "type": "string"
+          },
+          "sensitive_fields_removed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "answer_type",
+          "response_draft",
+          "disclosure_items"
+        ],
+        "title": "BillingAnswerResult",
+        "type": "object"
+      },
+      "preconditions": [
+        "客户意图已归一，事实快照来自本地合成数据"
+      ],
+      "required_scopes": [],
+      "side_effect": "NONE",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "customer_service",
+    "kind": "FSM_SHARD",
+    "owner": "customer_service_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "MEDIUM",
+    "route_header": {
+      "anti_triggers": [
+        "处理欺诈上报",
+        "创建资料变更工单"
+      ],
+      "input_type_summary": "BillingAnswerRequest",
+      "keywords": [
+        "还款",
+        "利率",
+        "账单",
+        "LPR",
+        "客服回复"
+      ],
+      "name": "账务与利率咨询回复路由",
+      "output_type_summary": "BillingAnswerResult",
+      "positive_triggers": [
+        "查询下期还款金额",
+        "解释贷款利率",
+        "说明重定价规则"
+      ],
+      "summary": "覆盖还款金额日期查询与利率构成解释的客服答复小状态图。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [],
+        "scenario_id": "customer_service_01_repayment_inquiry",
+        "step_ids": [
+          "step_01",
+          "step_03",
+          "step_04"
+        ],
+        "trace_id": "trace_syn_customer_service_01_repayment_inquiry"
+      },
+      {
+        "candidate_ids": [],
+        "scenario_id": "customer_service_03_rate_explanation",
+        "step_ids": [
+          "step_01",
+          "step_03",
+          "step_04"
+        ],
+        "trace_id": "trace_syn_customer_service_03_rate_explanation"
+      }
+    ],
+    "test_suite_ref": "suite.customer_service.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}

@@ -1,0 +1,112 @@
+{
+  "asset": {
+    "asset_id": "tool.corporate_ops.procurement.vendor_status_lookup",
+    "body": {
+      "directly_executable": true,
+      "handler_ref": "python://reduce_token_agent.tools.corporate_ops:vendor_status_lookup",
+      "invocation": "FUNCTION",
+      "kind": "PRIMITIVE_TOOL",
+      "operation_count": 1
+    },
+    "contract": {
+      "compensation": null,
+      "data_classification": "SYNTHETIC",
+      "effects": [
+        "返回只读状态快照"
+      ],
+      "environment": "local",
+      "failure_modes": [
+        "VENDOR_NOT_FOUND",
+        "VENDOR_STATUS_UNAVAILABLE"
+      ],
+      "goal": "读取供应商当前准入和尽调状态，作为采购路由的事实输入。",
+      "idempotency_required": false,
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "vendor_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "vendor_id"
+        ],
+        "title": "VendorStatusQuery",
+        "type": "object"
+      },
+      "max_retries": 1,
+      "operation": "corporate_ops.procurement.vendor_status_lookup",
+      "output_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "due_diligence_complete": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string"
+          },
+          "vendor_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "vendor_id",
+          "status",
+          "due_diligence_complete"
+        ],
+        "title": "VendorStatusSnapshot",
+        "type": "object"
+      },
+      "preconditions": [
+        "供应商标识非空且属于合成数据集"
+      ],
+      "required_scopes": [
+        "vendor:read"
+      ],
+      "side_effect": "READ_ONLY",
+      "tenant_scope": "local",
+      "timeout_seconds": 30
+    },
+    "domain": "corporate_operations",
+    "kind": "PRIMITIVE_TOOL",
+    "owner": "corporate_operations_poc",
+    "recall_policy": "ORDINARY",
+    "release_status": "DRAFT",
+    "risk_level": "LOW",
+    "route_header": {
+      "anti_triggers": [
+        "创建供应商",
+        "直接批准采购申请"
+      ],
+      "input_type_summary": "VendorStatusQuery",
+      "keywords": [
+        "采购",
+        "供应商",
+        "尽调",
+        "准入"
+      ],
+      "name": "供应商状态查询",
+      "output_type_summary": "VendorStatusSnapshot",
+      "positive_triggers": [
+        "查询供应商是否完成尽调",
+        "采购前检查供应商状态"
+      ],
+      "summary": "按供应商标识读取合成供应商的准入与尽调完成状态，不执行审批写入。"
+    },
+    "source_evidence": [
+      {
+        "candidate_ids": [
+          "candidate_vendor_checker"
+        ],
+        "scenario_id": "corporate_operations_02_procurement_approval",
+        "step_ids": [
+          "step_02"
+        ],
+        "trace_id": "trace_syn_corporate_operations_02_procurement_approval"
+      }
+    ],
+    "test_suite_ref": "suite.corporate_operations.kind_contract@1.0.0",
+    "version": "1.0.0"
+  },
+  "schema_version": "registry-asset.v1"
+}
