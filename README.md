@@ -185,7 +185,7 @@ CompileLight/
 ### 步骤 1：克隆 & 环境准备
 
 ```bash
-git clone git@github.com:gongxieruifeng/CompileLight.git
+git clone https://github.com/gongxieruifeng/CompileLight.git
 cd CompileLight
 
 # 创建 Conda 环境（Python 3.12 + 安装 dev 依赖）
@@ -247,13 +247,10 @@ python scripts/run_agent_task.py \
 
 ---
 
-## 🧪 验证与测试
+## 🧪 代码质量检查
 
 ```bash
-# 全量单元 + 集成测试（无 Ollama 依赖部分）
-pytest tests/ -x -q
-
-# 代码质量
+# 静态代码检查
 ruff check src/ scripts/
 mypy src/
 ```
@@ -284,8 +281,6 @@ mypy src/
    - 成功 Trace 只能创建 `DRAFT` Candidate
    - Candidate 必须经过测试 + 人工 CLI 操作才能晋升为 `ACTIVE`
    - 当前 Run 永远使用启动时固定的 Snapshot
-
-> 完整实现约束、验收口径与进度快照见 [docs/AGENTS.md](docs/AGENTS.md)
 
 ---
 
